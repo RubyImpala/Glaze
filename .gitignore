@@ -40,4 +40,4 @@ replay_*.log
 *.jfr
 
 
-run/config/glaze.properties
+src/config/glaze.properties

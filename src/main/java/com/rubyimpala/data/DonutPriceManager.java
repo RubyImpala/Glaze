@@ -29,7 +29,7 @@ public class DonutPriceManager {
 
     public static final Logger LOGGER = LoggerFactory.getLogger("GlazeMod");
     private static final String API_URL = "https://api.donutsmp.net/v1/auction/list/1";
-    private static final Path CONFIG_DIR = Paths.get("config");
+    private static final Path CONFIG_DIR = net.fabricmc.loader.api.FabricLoader.getInstance().getConfigDir().resolve("glaze");
     private static final Path PROPERTIES_PATH = CONFIG_DIR.resolve("glaze.properties");
     private static final Path CACHE_PATH = CONFIG_DIR.resolve("glaze_prices.json");
 
@@ -200,19 +200,38 @@ public class DonutPriceManager {
 
     public static void loadConfig() {
         try {
-            if (Files.notExists(PROPERTIES_PATH)) {
-                Files.createDirectories(CONFIG_DIR);
-                Files.writeString(PROPERTIES_PATH, "auth_token=YOUR_TOKEN_HERE");
-                return;
+            if (Files.exists(PROPERTIES_PATH)) {
+                Properties prop = new Properties();
+                prop.load(Files.newInputStream(PROPERTIES_PATH));
+                authToken = prop.getProperty("auth_token", "");
             }
-            Properties prop = new Properties();
-            prop.load(Files.newInputStream(PROPERTIES_PATH));
-            authToken = prop.getProperty("auth_token", "");
-        } catch (IOException ignored) {}
+        } catch (IOException e) {
+            LOGGER.error("Failed to load config", e);
+        }
     }
 
     public static String formatId(String id) {
         if (id == null) return "";
         return id.replace("minecraft:", "").replace("_", " ");
+    }
+    public static void updateAuthToken(String token) {
+        authToken = token;
+        saveConfig(); // Persist to glaze.properties immediately
+    }
+    public static String getAuthToken() {
+        return authToken;
+    }
+
+    private static void saveConfig() {
+        try {
+            Files.createDirectories(CONFIG_DIR);
+            Properties prop = new Properties();
+            prop.setProperty("auth_token", authToken);
+            try (OutputStream os = Files.newOutputStream(PROPERTIES_PATH)) {
+                prop.store(os, "Glaze Configuration");
+            }
+        } catch (IOException e) {
+            LOGGER.error("Failed to save config", e);
+        }
     }
 }

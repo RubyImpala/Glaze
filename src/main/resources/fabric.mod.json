@@ -3,9 +3,9 @@
 	"id": "glaze",
 	"version": "${version}",
 	"name": "Glaze",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "This is a QOL mod for the DonutSMP Minecraft server!",
 	"authors": [
-		"Me!"
+		"RubyImpala"
 	],
 	"contact": {
 		"homepage": "https://fabricmc.net/",
