@@ -1,22 +1,23 @@
 package com.rubyimpala.data;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import java.util.concurrent.TimeUnit;
-
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class DonutPriceManager {
-    private static class PriceEntry {
+    // Must be static and public for GSON to access it correctly
+    public static class PriceEntry {
         public final int price;
         public final long timestamp;
 
@@ -27,131 +28,82 @@ public class DonutPriceManager {
     }
 
     public static final Logger LOGGER = LoggerFactory.getLogger("GlazeMod");
-
-    private static final Map<String, PriceEntry> PRICES = new HashMap<>();
     private static final String API_URL = "https://api.donutsmp.net/v1/auction/list/1";
+    private static final Path CONFIG_DIR = Paths.get("config");
+    private static final Path PROPERTIES_PATH = CONFIG_DIR.resolve("glaze.properties");
+    private static final Path CACHE_PATH = CONFIG_DIR.resolve("glaze_prices.json");
+
     private static String authToken = "";
-    private static final Path CONFIG_PATH = Paths.get("config", "glaze.properties");
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+
+    // Map: Item ID -> List of historical PriceEntries
+    private static final Map<String, List<PriceEntry>> PRICES = new ConcurrentHashMap<>();
+    private static final Set<String> PENDING_REQUESTS = Collections.synchronizedSet(new HashSet<>());
+
+    // Shielding fields
+    private static final AtomicInteger REQUEST_COUNT = new AtomicInteger(0);
+    private static long blockUntil = 0;
+
+    // Background saver
+    private static final ScheduledExecutorService SCHEDULER = Executors.newSingleThreadScheduledExecutor();
 
     public static void init() {
         loadConfig();
+        loadCache();
         fetchFromApi("");
+
+        // Periodically save the JSON to disk every 5 minutes to avoid lag during hovers
+        SCHEDULER.scheduleAtFixedRate(DonutPriceManager::saveCache, 5, 5, TimeUnit.MINUTES);
     }
 
     public static Integer getPrice(String itemId) {
-        PriceEntry entry = PRICES.get(itemId);
-        if (entry == null) return null;
+        List<PriceEntry> history = PRICES.get(itemId);
+        if (history == null || history.isEmpty()) return null;
 
-        long currentTime = System.currentTimeMillis();
-
-        if (entry.price == -1) {
-            long oneMinute = 60 * 1000;
-            if (currentTime - entry.timestamp > oneMinute) {
-                return null; // One minute passed, try searching again
-            }
-            return -1; // Still in the 1-minute timeout
-        }
-
-        if (currentTime - entry.timestamp > (5 * 60 * 1000)) {
-            // Only return null if we aren't already trying to update it
-            if (!PENDING_REQUESTS.contains(itemId)) {
-                return null;
-            }
-        }
-        return entry.price;
-    }
-
-    private static void fetchFromApi(String searchTerm) {
-        try {
-            // Use URI to handle the string, then convert to URL
-            URL url = java.net.URI.create(API_URL).toURL();
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-
-            conn.setRequestMethod("POST");
-            conn.setRequestProperty("Authorization", authToken);
-            conn.setRequestProperty("Content-Type", "application/json");
-            conn.setRequestProperty("accept", "application/json");
-            conn.setDoOutput(true);
-
-            String jsonInputString = "{\"search\": \"" + searchTerm + "\", \"sort\": \"lowest_price, recently_listed\"}";
-
-            try (OutputStream os = conn.getOutputStream()) {
-                byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
-                os.write(input, 0, input.length);
-            }
-
-            LOGGER.info("[DonutDebug] Searching for: {}", searchTerm);
-
-            if (conn.getResponseCode() == 200) {
-                try (InputStreamReader reader = new InputStreamReader(conn.getInputStream())) {
-                    DonutApiResponse data = new Gson().fromJson(reader, DonutApiResponse.class);
-
-                    // CHECK: Did the API return an empty result for our specific search?
-                    if (data == null || data.result == null || data.result.isEmpty()) {
-                        if (!searchTerm.isEmpty()) {
-                            // Set the 1-minute timeout by putting -1 in the map
-                            PRICES.put(searchTerm, new PriceEntry(-1, System.currentTimeMillis()));
-                            LOGGER.info("[DonutDebug] No listings for '{}'. Cooldown started.", searchTerm);
-                        }
-                    } else {
-                        updateMap(data);
-                        LOGGER.info("[DonutDebug] Successfully updated prices for search: {}", searchTerm);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private static void updateMap(DonutApiResponse data) {
-        if (data == null || data.result == null || data.result.isEmpty()) return;
-
-        Map<String, List<Double>> grouped = new HashMap<>();
-        for (DonutApiResponse.AuctionListing listing : data.result) {
-            if (listing == null || listing.item == null || listing.item.id == null) continue;
-
-            String id = formatId(listing.item.id);
-
-            // Only collect data if the price and count are valid
-            if (listing.price > 0) {
-                double count = (listing.item.count > 0) ? listing.item.count : 1;
-                double pricePerItem = listing.price / count;
-                grouped.computeIfAbsent(id, k -> new ArrayList<>()).add(pricePerItem);
-            }
-        }
-
+        PriceEntry latest = history.get(history.size() - 1);
         long now = System.currentTimeMillis();
-        for (Map.Entry<String, List<Double>> entry : grouped.entrySet()) {
-            List<Double> prices = entry.getValue();
-            if (prices.isEmpty()) continue;
 
-            Collections.sort(prices);
-            int count = Math.min(prices.size(), 5);
-            double sum = 0;
-            for (int i = 0; i < count; i++) {
-                sum += prices.get(i);
-            }
-            int average = (int) (sum / count);
-
-            // Save the valid price
-            PRICES.put(entry.getKey(), new PriceEntry(average, now));
+        if (latest.price == -1) {
+            if (now - latest.timestamp > 60000) return null;
+            return -1;
         }
-    }
 
-    private static final Set<String> PENDING_REQUESTS = Collections.synchronizedSet(new HashSet<>());
+        // 5 minute refresh check
+        if (now - latest.timestamp > 300000) {
+            if (!PENDING_REQUESTS.contains(itemId)) return null;
+        }
+
+        // AVERAGING LOGIC: Use the last 5 valid results from history
+        double sum = 0;
+        int count = 0;
+        for (int i = history.size() - 1; i >= 0 && count < 5; i--) {
+            int p = history.get(i).price;
+            if (p > 0) {
+                sum += p;
+                count++;
+            }
+        }
+
+        return count > 0 ? (int)(sum / count) : latest.price;
+    }
 
     public static void fetchSpecificItem(String itemId) {
-        if (PENDING_REQUESTS.contains(itemId)) return;
+        long now = System.currentTimeMillis();
+        if (PENDING_REQUESTS.contains(itemId) || now < blockUntil) return;
 
-        // FIX: Check if we already have a result (Price or -1) that isn't expired
-        if (getPrice(itemId) != null) return;
+        // Rate limit shield (250 requests)
+        if (REQUEST_COUNT.get() >= 250) {
+            LOGGER.warn("[GlazeMod] Hit 250 limit. Cooling down for 60s.");
+            blockUntil = now + 60000;
+            REQUEST_COUNT.set(0);
+            return;
+        }
 
+        PENDING_REQUESTS.add(itemId);
+        REQUEST_COUNT.incrementAndGet();
 
         CompletableFuture.runAsync(() -> {
-            PENDING_REQUESTS.add(itemId);
             try {
-                // We pass the ID so fetchFromApi knows what to mark as -1 if it fails
                 fetchFromApi(itemId);
             } finally {
                 PENDING_REQUESTS.remove(itemId);
@@ -159,33 +111,108 @@ public class DonutPriceManager {
         });
     }
 
-    public static void loadConfig() {
+    private static void fetchFromApi(String searchTerm) {
         try {
-            if (Files.notExists(CONFIG_PATH)) {
-                Files.createDirectories(CONFIG_PATH.getParent());
-                // Create a template file so you know where to put the token
-                Files.writeString(CONFIG_PATH, "auth_token=YOUR_TOKEN_HERE");
-                LOGGER.warn("Config file created at {}. Please add your token!", CONFIG_PATH);
-                return;
+            URL url = java.net.URI.create(API_URL).toURL();
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Authorization", authToken);
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setDoOutput(true);
+
+            String jsonInputString = "{\"search\": \"" + searchTerm + "\", \"sort\": \"lowest_price\"}";
+            try (OutputStream os = conn.getOutputStream()) {
+                os.write(jsonInputString.getBytes(StandardCharsets.UTF_8));
             }
 
-            Properties prop = new Properties();
-            prop.load(Files.newInputStream(CONFIG_PATH));
-            authToken = prop.getProperty("auth_token", "");
-
-        } catch (IOException e) {
-            LOGGER.error("Failed to load config", e);
+            if (conn.getResponseCode() == 200) {
+                try (InputStreamReader reader = new InputStreamReader(conn.getInputStream())) {
+                    DonutApiResponse data = GSON.fromJson(reader, DonutApiResponse.class);
+                    processResults(searchTerm, data);
+                }
+            } else if (conn.getResponseCode() == 429) {
+                blockUntil = System.currentTimeMillis() + 60000;
+                LOGGER.error("[GlazeMod] 429 detected. Blocking for 60s.");
+            }
+        } catch (Exception e) {
+            LOGGER.error("API Fetch Failed: " + e.getMessage());
         }
     }
+
+    private static void processResults(String searchTerm, DonutApiResponse data) {
+        long now = System.currentTimeMillis();
+
+        // 1. Update the map for items found in results
+        if (data != null && data.result != null) {
+            for (DonutApiResponse.AuctionListing listing : data.result) {
+                if (listing == null || listing.item == null) continue;
+                String id = formatId(listing.item.id);
+                if (listing.price > 0) {
+                    int p = (int)(listing.price / Math.max(1, (double)listing.item.count));
+                    addToHistory(id, p, now);
+                }
+            }
+        }
+
+        // 2. If the specific search returned nothing, mark it as -1
+        if (!searchTerm.isEmpty() && (data == null || data.result == null || data.result.isEmpty())) {
+            addToHistory(searchTerm, -1, now);
+        }
+    }
+
+    private static void addToHistory(String id, int price, long timestamp) {
+        PRICES.compute(id, (k, list) -> {
+            if (list == null) list = new ArrayList<>();
+            list.add(new PriceEntry(price, timestamp));
+            if (list.size() > 10) list.remove(0); // Only keep last 10 for JSON size
+            return list;
+        });
+    }
+
+    // --- Persistence ---
+
+    private static void loadCache() {
+        try {
+            if (Files.exists(CACHE_PATH)) {
+                try (Reader reader = Files.newBufferedReader(CACHE_PATH)) {
+                    java.lang.reflect.Type type = new TypeToken<Map<String, List<PriceEntry>>>(){}.getType();
+                    Map<String, List<PriceEntry>> loaded = GSON.fromJson(reader, type);
+                    if (loaded != null) PRICES.putAll(loaded);
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("Cache load failed", e);
+        }
+    }
+
+    public static void saveCache() {
+        try {
+            Files.createDirectories(CONFIG_DIR);
+            // Snapshot the map to avoid ConcurrentModificationException during saving
+            Map<String, List<PriceEntry>> snapshot = new HashMap<>(PRICES);
+            try (Writer writer = Files.newBufferedWriter(CACHE_PATH)) {
+                GSON.toJson(snapshot, writer);
+            }
+        } catch (Exception e) {
+            LOGGER.error("Cache save failed", e);
+        }
+    }
+
+    public static void loadConfig() {
+        try {
+            if (Files.notExists(PROPERTIES_PATH)) {
+                Files.createDirectories(CONFIG_DIR);
+                Files.writeString(PROPERTIES_PATH, "auth_token=YOUR_TOKEN_HERE");
+                return;
+            }
+            Properties prop = new Properties();
+            prop.load(Files.newInputStream(PROPERTIES_PATH));
+            authToken = prop.getProperty("auth_token", "");
+        } catch (IOException ignored) {}
+    }
+
     public static String formatId(String id) {
         if (id == null) return "";
-
-        // 1. Remove the namespace
-        String term = id.replace("minecraft:", "");
-
-        // 2. Replace underscores with spaces
-        term = term.replace("_", " ");
-
-        return term;
+        return id.replace("minecraft:", "").replace("_", " ");
     }
 }
