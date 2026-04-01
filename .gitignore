@@ -41,3 +41,4 @@ replay_*.log
 
 
 src/config/glaze.properties
+glaze_prices.json
