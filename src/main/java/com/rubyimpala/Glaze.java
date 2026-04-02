@@ -1,9 +1,7 @@
 package com.rubyimpala;
 
-import com.rubyimpala.data.DonutPriceManager;
 import net.fabricmc.api.ModInitializer;
 
-import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

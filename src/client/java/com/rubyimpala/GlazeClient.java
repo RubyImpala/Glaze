@@ -1,7 +1,7 @@
 package com.rubyimpala;
 
 import com.rubyimpala.commands.GlazeCommands;
-import com.rubyimpala.data.DonutPriceManager;
+import com.rubyimpala.models.DonutPriceManager;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.minecraft.core.registries.BuiltInRegistries;

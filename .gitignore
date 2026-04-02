@@ -40,5 +40,5 @@ replay_*.log
 *.jfr
 
 
-src/config/glaze.properties
+src/client/java/com/rubyimpala/config/glaze.properties
 glaze_prices.json

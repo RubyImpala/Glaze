@@ -1,4 +1,4 @@
-package com.rubyimpala.data;
+package com.rubyimpala.models;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -16,16 +16,6 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class DonutPriceManager {
-    // Must be static and public for GSON to access it correctly
-    public static class PriceEntry {
-        public final int price;
-        public final long timestamp;
-
-        public PriceEntry(int price, long timestamp) {
-            this.price = price;
-            this.timestamp = timestamp;
-        }
-    }
 
     public static final Logger LOGGER = LoggerFactory.getLogger("GlazeMod");
     private static final String API_URL = "https://api.donutsmp.net/v1/auction/list/1";
@@ -63,13 +53,13 @@ public class DonutPriceManager {
         PriceEntry latest = history.get(history.size() - 1);
         long now = System.currentTimeMillis();
 
-        if (latest.price == -1) {
-            if (now - latest.timestamp > 60000) return null;
+        if (latest.price() == -1) {
+            if (now - latest.timestamp() > 60000) return null;
             return -1;
         }
 
         // 5 minute refresh check
-        if (now - latest.timestamp > 300000) {
+        if (now - latest.timestamp() > 300000) {
             if (!PENDING_REQUESTS.contains(itemId)) return null;
         }
 
@@ -77,14 +67,14 @@ public class DonutPriceManager {
         double sum = 0;
         int count = 0;
         for (int i = history.size() - 1; i >= 0 && count < 5; i--) {
-            int p = history.get(i).price;
+            int p = history.get(i).price();
             if (p > 0) {
                 sum += p;
                 count++;
             }
         }
 
-        return count > 0 ? (int)(sum / count) : latest.price;
+        return count > 0 ? (int)(sum / count) : latest.price();
     }
 
     public static void fetchSpecificItem(String itemId) {

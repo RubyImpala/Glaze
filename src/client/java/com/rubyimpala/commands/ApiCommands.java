@@ -3,7 +3,7 @@ package com.rubyimpala.commands;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
-import com.rubyimpala.data.DonutPriceManager;
+import com.rubyimpala.models.DonutPriceManager;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.ClickEvent;

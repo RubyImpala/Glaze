@@ -1,4 +1,4 @@
-package com.rubyimpala.data;
+package com.rubyimpala.models;
 
 import com.google.gson.annotations.SerializedName;
 import java.util.ArrayList;

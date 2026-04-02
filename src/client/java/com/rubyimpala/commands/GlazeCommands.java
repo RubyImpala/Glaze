@@ -1,6 +1,6 @@
 package com.rubyimpala.commands;
 
-import com.rubyimpala.data.DonutPriceManager;
+import com.rubyimpala.models.DonutPriceManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.ChatFormatting;
