@@ -20,7 +20,6 @@ public class GlazeCommands {
 
             // Attach the branches from other classes
             glazeRoot.then(ApiCommands.buildApiBranch());
-            // glazeRoot.then(OtherCommands.buildOtherBranch());
 
             // Register the whole tree at once
             dispatcher.register(glazeRoot);
