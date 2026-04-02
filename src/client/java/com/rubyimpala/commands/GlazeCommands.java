@@ -1,10 +1,7 @@
 package com.rubyimpala.commands;
 
-import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.rubyimpala.data.DonutPriceManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
-import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -15,7 +12,6 @@ public class GlazeCommands {
 
     public static void register() {
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
-            // Build the main '/glaze' trunk
             var glazeRoot = literal("glaze");
 
             // Attach the branches from other classes
@@ -31,7 +27,7 @@ public class GlazeCommands {
                     if (DonutPriceManager.getAuthToken().isEmpty()) {
                         client.player.sendSystemMessage(Component.literal("§6[Glaze] §eNo API Key found!")
                                 .withStyle(ChatFormatting.YELLOW));
-                        client.player.sendSystemMessage(Component.literal("§7Type §f/api key §7on DonutSMP, then run §f/glaze api {key}")
+                        client.player.sendSystemMessage(Component.literal("§7Type §f/api key §7on DonutSMP, then run §f/glaze api set <key>")
                                 .withStyle(ChatFormatting.GRAY));
                     } else {
                         // If they have a key, just a small "active" message

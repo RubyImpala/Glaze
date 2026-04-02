@@ -5,6 +5,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.rubyimpala.data.DonutPriceManager;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
@@ -46,19 +47,29 @@ public class ApiCommands {
     }
 
     private static int viewKey(CommandContext<FabricClientCommandSource> context){
-        context.getSource().sendFeedback(Component.literal("§c§l⚠ SECURITY: §cDo not share this key with anyone!"));
+        String rawKey = DonutPriceManager.getAuthToken();
 
-        String key = DonutPriceManager.getAuthToken();
+        boolean hasKey = (rawKey != null && !rawKey.isEmpty());
 
+        if (hasKey) {
+            context.getSource().sendFeedback(Component.literal("§c§l⚠ SECURITY: §cDo not share this key with anyone!"));
+        }
+
+        String displayText = hasKey ? rawKey : "No key exists";
+        ChatFormatting color = hasKey ? ChatFormatting.BLUE : ChatFormatting.RED;
         MutableComponent message = Component.literal("§6[Glaze] §aCurrent key (Click to copy): ");
 
-        MutableComponent keyComponent = Component.literal("§9" + key)
-                .withStyle(style -> style
-                        .withClickEvent(new ClickEvent.CopyToClipboard(key))
-                        .withHoverEvent(new HoverEvent.ShowText(Component.literal("§eClick to copy to clipboard")))
-                );
+        MutableComponent keyComponent = Component.literal(displayText)
+                .withStyle(style -> {
+                    style = style.withColor(color);
+                    // Only add click/hover events if the key actually exists!
+                    if (hasKey) {
+                        style = style.withClickEvent(new ClickEvent.CopyToClipboard(rawKey))
+                                .withHoverEvent(new HoverEvent.ShowText(Component.literal("§eClick to copy")));
+                    }
+                    return style;
+                });
 
-        // Join them and send
         context.getSource().sendFeedback(message.append(keyComponent));        return 1;
     }
 
