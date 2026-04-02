@@ -2,7 +2,6 @@ package com.rubyimpala.commands;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.rubyimpala.data.DonutPriceManager;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
@@ -19,7 +18,7 @@ public class ApiCommands {
     public static LiteralArgumentBuilder<FabricClientCommandSource> buildApiBranch() {
         return literal("api")
                 .then(buildDeleteNode())
-                .then(buildKeyNode())
+                .then(buildSetNode())
                 .then(buildViewNode());
     }
 
@@ -33,9 +32,10 @@ public class ApiCommands {
                .executes(ApiCommands::viewKey);
     }
 
-    private static RequiredArgumentBuilder<FabricClientCommandSource, String> buildKeyNode() {
-        return argument("key", StringArgumentType.string())
-                .executes(ApiCommands::setKey);
+    private static LiteralArgumentBuilder<FabricClientCommandSource> buildSetNode() {
+        return literal("set")
+                .then(argument("key", StringArgumentType.string())
+                        .executes(ApiCommands::setKey));
     }
 
     private static int setKey(CommandContext<FabricClientCommandSource> context) {
