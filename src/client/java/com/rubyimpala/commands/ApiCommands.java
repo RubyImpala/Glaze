@@ -3,7 +3,7 @@ package com.rubyimpala.commands;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
-import com.rubyimpala.models.DonutPriceManager;
+import com.rubyimpala.config.GlazeConfig;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.ClickEvent;
@@ -41,13 +41,13 @@ public class ApiCommands {
 
     private static int setKey(CommandContext<FabricClientCommandSource> context) {
         String key = StringArgumentType.getString(context, "key");
-        DonutPriceManager.updateAuthToken(key);
+        GlazeConfig.Auth.updateToken(key);
         context.getSource().sendFeedback(Component.literal("§6[Glaze] §aKey saved!"));
         return 1;
     }
 
     private static int viewKey(CommandContext<FabricClientCommandSource> context){
-        String rawKey = DonutPriceManager.getAuthToken();
+        String rawKey = GlazeConfig.Auth.getToken();
 
         boolean hasKey = (rawKey != null && !rawKey.isEmpty());
 
@@ -74,7 +74,7 @@ public class ApiCommands {
     }
 
     private static int deleteKey(CommandContext<FabricClientCommandSource> context) {
-        DonutPriceManager.updateAuthToken("");
+        GlazeConfig.Auth.updateToken("");
         context.getSource().sendFeedback(Component.literal("§6[Glaze] §cKey deleted!"));
         return 1;
     }

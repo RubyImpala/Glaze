@@ -1,6 +1,6 @@
 package com.rubyimpala.commands;
 
-import com.rubyimpala.models.DonutPriceManager;
+import com.rubyimpala.config.GlazeConfig;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.ChatFormatting;
@@ -24,7 +24,7 @@ public class GlazeCommands {
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
             client.execute(() -> {
                 if (client.player != null) {
-                    if (DonutPriceManager.getAuthToken().isEmpty()) {
+                    if (GlazeConfig.Auth.getToken().isEmpty()) {
                         client.player.sendSystemMessage(Component.literal("§6[Glaze] §eNo API Key found!")
                                 .withStyle(ChatFormatting.YELLOW));
                         client.player.sendSystemMessage(Component.literal("§7Type §f/api key §7on DonutSMP, then run §f/glaze api set <key>")
