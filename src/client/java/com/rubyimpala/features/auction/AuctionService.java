@@ -39,7 +39,7 @@ public class AuctionService {
      * @param itemId  e.g. "minecraft:diamond"
      * @return  the lowest total listing price, or empty if loading / no listings / no API key
      */
-    public static Optional<Integer> getLowestPrice(String itemId) {
+    public static Optional<Long> getLowestPrice(String itemId) {
         // Don't do anything if the user hasn't set their API key yet
         if (GlazeConfig.Auth.getToken().isEmpty()) {
             return Optional.empty();
@@ -59,7 +59,7 @@ public class AuctionService {
         List<PriceEntry> entries = AuctionCache.get(itemId);
         return entries.stream()
                 .filter(e -> e.id().equals(itemId))
-                .min(Comparator.comparingInt(PriceEntry::getUnitPrice))
+                .min(Comparator.comparingLong(PriceEntry::getUnitPrice))
                 .map(PriceEntry::getUnitPrice);
     }
 
@@ -113,13 +113,13 @@ public class AuctionService {
         if (contents == null) return null;
 
         List<ItemValueEntry> entries = new ArrayList<>();
-        int total = 0;
+        long total = 0;
         boolean hasLoading = false;
         boolean hasUnpriced = false;
 
         // Price the shulker box itself
         String shulkerId = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
-        Optional<Integer> shulkerPrice = getLowestPrice(shulkerId);
+        Optional<Long> shulkerPrice = getLowestPrice(shulkerId);
         if (!AuctionCache.hasFetched(shulkerId) || isLoading(shulkerId)) {
             hasLoading = true;
         } else if (shulkerPrice.isPresent()) {
@@ -132,7 +132,7 @@ public class AuctionService {
             int count = item.getCount();
 
             // This triggers a background fetch if the item isn't cached yet
-            Optional<Integer> price = getLowestPrice(itemId);
+            Optional<Long> price = getLowestPrice(itemId);
 
             if (!AuctionCache.hasFetched(itemId) || isLoading(itemId)) {
                 // Fetch is still running
@@ -143,7 +143,7 @@ public class AuctionService {
                 entries.add(new ItemValueEntry(displayName, count, -1, true, false));
                 hasUnpriced = true;
             } else {
-                int unitPrice = price.get();
+                Long unitPrice = price.get();
                 entries.add(new ItemValueEntry(displayName, count, unitPrice, false, false));
                 total += unitPrice * count;
             }

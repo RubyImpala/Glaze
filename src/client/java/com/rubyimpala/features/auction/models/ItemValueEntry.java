@@ -3,12 +3,12 @@ package com.rubyimpala.features.auction.models;
 public record ItemValueEntry(
         String displayName,
         int count,
-        int unitPrice, // -1 if unpriced or loading
+        long unitPrice, // -1 if unpriced or loading
         boolean unpriced,
         boolean loading
 ) {
     // Total value of this stack (e.g. 64 diamonds at $100 each = $6400)
-    public int stackTotal() {
+    public long stackTotal() {
         return unitPrice * count;
     }
 }

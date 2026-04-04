@@ -35,17 +35,17 @@ public class ItemTooltipRenderer {
     }
 
     private static void renderLoading(List<Component> lines) {
-        lines.add(Component.literal("AH: ").withStyle(ChatFormatting.GOLD)
+        lines.add(Component.literal("Price: ").withStyle(ChatFormatting.GOLD)
                 .append(Component.literal("Loading...").withStyle(ChatFormatting.GRAY)));
     }
 
     private static void renderNoListings(List<Component> lines) {
-        lines.add(Component.literal("AH: ").withStyle(ChatFormatting.GOLD)
+        lines.add(Component.literal("Price: ").withStyle(ChatFormatting.GOLD)
                 .append(Component.literal("No listings").withStyle(ChatFormatting.GRAY)));
     }
 
-    private static void renderUnitPrice(List<Component> lines, int unitPrice, boolean isStackable) {
-        lines.add(Component.literal("AH: ").withStyle(ChatFormatting.GOLD)
+    private static void renderUnitPrice(List<Component> lines, long unitPrice, boolean isStackable) {
+        lines.add(Component.literal("Price: ").withStyle(ChatFormatting.GOLD)
                 .append(Component.literal(DisplayUtils.formatPrice(unitPrice))
                         .withStyle(ChatFormatting.GREEN)));
         if (isStackable) {
@@ -56,9 +56,9 @@ public class ItemTooltipRenderer {
                 .withStyle(ChatFormatting.DARK_GRAY));
     }
 
-    private static void renderStackPrice(List<Component> lines, int unitPrice, int maxStackSize) {
-        int stackPrice = unitPrice * maxStackSize;
-        lines.add(Component.literal("AH (x" + maxStackSize + "): ").withStyle(ChatFormatting.GOLD)
+    private static void renderStackPrice(List<Component> lines, long unitPrice, int maxStackSize) {
+        long stackPrice = unitPrice * maxStackSize;
+        lines.add(Component.literal("Price (x" + maxStackSize + "): ").withStyle(ChatFormatting.GOLD)
                 .append(Component.literal(DisplayUtils.formatPrice(stackPrice))
                         .withStyle(ChatFormatting.GREEN)));
         lines.add(Component.literal("[Unshift for unit price]")

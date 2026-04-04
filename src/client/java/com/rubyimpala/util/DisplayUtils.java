@@ -12,8 +12,10 @@ public class DisplayUtils {
      *   2500000    -> "$2.5M"
      *   1000000000 -> "$1B"
      */
-    public static String formatPrice(int price) {
-        if (price >= 1_000_000_000) {
+    public static String formatPrice(long price) {
+        if (price >= 1_000_000_000_000L) {
+            return "$" + formatDecimal(price / 1_000_000_000_000.0) + "T";
+        } else if (price >= 1_000_000_000) {
             return "$" + formatDecimal(price / 1_000_000_000.0) + "B";
         } else if (price >= 1_000_000) {
             return "$" + formatDecimal(price / 1_000_000.0) + "M";

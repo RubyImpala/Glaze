@@ -26,7 +26,7 @@ public class ShulkerTooltipRenderer {
     }
 
     private static void renderSummary(ShulkerValueResult result, List<Component> lines) {
-        lines.add(Component.literal("AH Value: ").withStyle(ChatFormatting.GOLD)
+        lines.add(Component.literal("Price: ").withStyle(ChatFormatting.GOLD)
                 .append(Component.literal(DisplayUtils.formatPrice(result.totalPrice()))
                         .withStyle(ChatFormatting.GREEN))
                 .append(loadingSuffix(result.hasLoading())));
@@ -38,7 +38,7 @@ public class ShulkerTooltipRenderer {
     }
 
     private static void renderBreakdown(ShulkerValueResult result, List<Component> lines) {
-        lines.add(Component.literal("━━ AH Breakdown ━━").withStyle(ChatFormatting.GOLD));
+        lines.add(Component.literal("━━ Price Breakdown ━━").withStyle(ChatFormatting.GOLD));
 
         for (ItemValueEntry entry : result.entries()) {
             lines.add(renderEntry(entry));
