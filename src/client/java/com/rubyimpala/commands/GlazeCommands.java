@@ -27,7 +27,7 @@ public class GlazeCommands {
                     if (GlazeConfig.Auth.getToken().isEmpty()) {
                         client.player.sendSystemMessage(Component.literal("§6[Glaze] §eNo API Key found!")
                                 .withStyle(ChatFormatting.YELLOW));
-                        client.player.sendSystemMessage(Component.literal("§7Type §f/api key §7on DonutSMP, then run §f/glaze api set <key>")
+                        client.player.sendSystemMessage(Component.literal("§7Type §f/api key §7on DonutSMP (If running it didn't do anything run this §f/glaze api set <key>")
                                 .withStyle(ChatFormatting.GRAY));
                     } else {
                         // If they have a key, just a small "active" message
