@@ -1,6 +1,7 @@
-package com.rubyimpala.events;
+package com.rubyimpala.features.auction.events;
 
 import com.rubyimpala.features.auction.AuctionService;
+import com.rubyimpala.util.DisplayUtils;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -35,7 +36,7 @@ public class TooltipEvents {
                 AuctionService.getLowestPrice(itemId).ifPresent(price -> {
                     lines.add(
                             Component.literal("AH: ").withStyle(ChatFormatting.GOLD)
-                                    .append(Component.literal(price + " coins").withStyle(ChatFormatting.GREEN))
+                                    .append(Component.literal(DisplayUtils.formatPrice(price)).withStyle(ChatFormatting.GREEN))
                     );
                 });
             }

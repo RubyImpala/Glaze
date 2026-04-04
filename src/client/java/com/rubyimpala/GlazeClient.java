@@ -2,7 +2,7 @@ package com.rubyimpala;
 
 import com.rubyimpala.commands.GlazeCommands;
 import com.rubyimpala.config.GlazeConfig;
-import com.rubyimpala.events.TooltipEvents;
+import com.rubyimpala.features.auction.events.TooltipEvents;
 
 import net.fabricmc.api.ClientModInitializer;
 
