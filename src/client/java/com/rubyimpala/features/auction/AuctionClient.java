@@ -22,12 +22,16 @@ public class AuctionClient {
 
     public static JsonElement fetchRaw(String query) {
         try {
+            JsonObject body = new JsonObject();
+            body.addProperty("search", query);
+            body.addProperty("sort", "lowest_price");
+
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(AUCTION_API_URL))
                     .header("Authorization", GlazeConfig.Auth.getToken())
                     .header("Content-Type", "application/json")
                     .header("Accept", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString("{\"search\": \"" + query + "\", \"sort\": \"lowest_price\"}"))
+                    .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
                     .build();
 
             HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());

@@ -1,17 +1,26 @@
 package com.rubyimpala.features.auction;
 
 import com.rubyimpala.config.GlazeConfig;
+import com.rubyimpala.features.auction.models.ItemValueEntry;
 import com.rubyimpala.features.auction.models.PriceEntry;
+import com.rubyimpala.features.auction.models.ShulkerValueResult;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemContainerContents;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static com.rubyimpala.config.GlazeConfig.LOGGER;
-
 public class AuctionService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger("GlazeMod");
 
     // A single background thread dedicated to API requests.
     // "daemon = true" means it won't stop the game from closing.
@@ -50,7 +59,7 @@ public class AuctionService {
         List<PriceEntry> entries = AuctionCache.get(itemId);
         return entries.stream()
                 .filter(e -> e.id().equals(itemId))
-                .min(Comparator.comparingInt(PriceEntry::totalPrice))
+                .min(Comparator.comparingInt(PriceEntry::getUnitPrice))
                 .map(PriceEntry::getUnitPrice);
     }
 
@@ -93,5 +102,53 @@ public class AuctionService {
                 AuctionCache.markFailed(itemId);
             }
         });
+    }
+    /**
+     * Calculates the total AH value of all items inside a shulker box.
+     * Returns null if the stack isn't a shulker or has no contents component.
+     */
+    public static ShulkerValueResult getShulkerBreakdown(ItemStack stack) {
+        // Get the items stored inside the shulker
+        ItemContainerContents contents = stack.get(DataComponents.CONTAINER);
+        if (contents == null) return null;
+
+        List<ItemValueEntry> entries = new ArrayList<>();
+        int total = 0;
+        boolean hasLoading = false;
+        boolean hasUnpriced = false;
+
+        // Price the shulker box itself
+        String shulkerId = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+        Optional<Integer> shulkerPrice = getLowestPrice(shulkerId);
+        if (!AuctionCache.hasFetched(shulkerId) || isLoading(shulkerId)) {
+            hasLoading = true;
+        } else if (shulkerPrice.isPresent()) {
+            total += shulkerPrice.get();
+        }
+
+        for (ItemStack item : contents.nonEmptyItemCopyStream().toList()) {
+            String itemId = BuiltInRegistries.ITEM.getKey(item.getItem()).toString();
+            String displayName = item.getHoverName().getString();
+            int count = item.getCount();
+
+            // This triggers a background fetch if the item isn't cached yet
+            Optional<Integer> price = getLowestPrice(itemId);
+
+            if (!AuctionCache.hasFetched(itemId) || isLoading(itemId)) {
+                // Fetch is still running
+                entries.add(new ItemValueEntry(displayName, count, -1, false, true));
+                hasLoading = true;
+            } else if (price.isEmpty()) {
+                // Fetched but no listings on the AH
+                entries.add(new ItemValueEntry(displayName, count, -1, true, false));
+                hasUnpriced = true;
+            } else {
+                int unitPrice = price.get();
+                entries.add(new ItemValueEntry(displayName, count, unitPrice, false, false));
+                total += unitPrice * count;
+            }
+        }
+
+        return new ShulkerValueResult(total, hasLoading, hasUnpriced, entries);
     }
 }

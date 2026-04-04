@@ -1,44 +1,43 @@
 package com.rubyimpala.features.auction.events;
 
+import com.rubyimpala.features.auction.AuctionCache;
+import com.rubyimpala.features.auction.AuctionHoverState;
 import com.rubyimpala.features.auction.AuctionService;
-import com.rubyimpala.util.DisplayUtils;
+import com.rubyimpala.features.auction.events.renderers.ItemTooltipRenderer;
+import com.rubyimpala.features.auction.events.renderers.ShulkerTooltipRenderer;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
-import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.level.block.ShulkerBoxBlock;
+import org.lwjgl.glfw.GLFW;
 
 public class TooltipEvents {
 
+    private static boolean rWasPressed = false;
+
     public static void register() {
         ItemTooltipCallback.EVENT.register((stack, context, tooltipType, lines) -> {
-            // Don't do anything for empty slots
             if (stack.isEmpty()) return;
 
-            // Get the item's full registry ID, e.g. "minecraft:diamond"
             String itemId = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
 
-            if (AuctionService.isLoading(itemId)) {
-                // First hover — fetch is running in background
-                lines.add(
-                        Component.literal("AH: ").withStyle(ChatFormatting.GOLD)
-                                .append(Component.literal("Loading...").withStyle(ChatFormatting.GRAY))
-                );
+            // R key reload — only fires while actively hovering this item
+            long window = Minecraft.getInstance().getWindow().handle();
+            boolean rPressed = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_R) == GLFW.GLFW_PRESS;
+            if (rPressed && !rWasPressed) {
+                AuctionCache.invalidate(itemId);
+                AuctionService.getLowestPrice(itemId);
+            }
+            rWasPressed = rPressed;
 
-            } else if (AuctionService.hasNoListings(itemId)) {
-                // Fetched successfully but nothing is listed on the AH
-                lines.add(
-                        Component.literal("AH: ").withStyle(ChatFormatting.GOLD)
-                                .append(Component.literal("No listings").withStyle(ChatFormatting.GRAY))
-                );
+            boolean isShulker = stack.getItem() instanceof BlockItem bi
+                    && bi.getBlock() instanceof ShulkerBoxBlock;
 
+            if (isShulker) {
+                ShulkerTooltipRenderer.render(stack, lines);
             } else {
-                // We have a price!
-                AuctionService.getLowestPrice(itemId).ifPresent(price -> {
-                    lines.add(
-                            Component.literal("AH: ").withStyle(ChatFormatting.GOLD)
-                                    .append(Component.literal(DisplayUtils.formatPrice(price)).withStyle(ChatFormatting.GREEN))
-                    );
-                });
+                ItemTooltipRenderer.render(stack, lines);
             }
         });
     }

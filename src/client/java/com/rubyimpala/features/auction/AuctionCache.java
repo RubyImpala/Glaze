@@ -60,4 +60,11 @@ public class AuctionCache {
     public static boolean hasFetched(String itemId) {
         return cache.containsKey(itemId);
     }
+
+    /** Forces the item to be treated as stale so the next hover re-fetches it */
+    public static void invalidate(String itemId) {
+        cache.remove(itemId);
+        timestamps.remove(itemId);
+        // Don't touch pending — if a fetch is already running, let it finish
+    }
 }
