@@ -8,12 +8,12 @@
 		"RubyImpala"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"homepage": "https://modrinth.com/mod/glaze",
+		"sources": "https://github.com/RubyImpala/Glaze"
 	},
 	"license": "GPL-3.0-or-later",
 	"icon": "assets/glaze/icon.png",
-	"environment": "*",
+	"environment": "client",
 	"entrypoints": {
 		"main": [
 			"com.rubyimpala.Glaze"
@@ -23,6 +23,9 @@
 		],
 		"fabric-datagen": [
 			"com.rubyimpala.GlazeDataGenerator"
+		],
+		"modmenu": [
+			"com.rubyimpala.config.ModMenuIntegration"
 		]
 	},
 	"mixins": [

@@ -12,4 +12,6 @@ public record GlazeConstants() {
     public static final Path CONFIG_PATH = CONFIG_DIR.resolve("glaze.properties");
 
     public static final Path CACHE_PATH = CONFIG_DIR.resolve("glaze_prices.json");
+
+    public static final Path CONFIG_PATH_SETTINGS = CONFIG_DIR.resolve("glaze_config.properties");
 }

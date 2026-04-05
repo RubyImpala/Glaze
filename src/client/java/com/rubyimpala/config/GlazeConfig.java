@@ -17,16 +17,21 @@ public class GlazeConfig {
 
 
     public static void load() {
-        try (var is = Files.newInputStream(CONFIG_PATH)) {
-            Properties prop = new Properties();
-            prop.load(is);
-            Auth.setToken(prop.getProperty("auth_token", ""));
-        } catch (IOException e) {
-            LOGGER.error("Failed to load config", e);
+        // Load token
+        if (Files.exists(CONFIG_PATH)) {
+            try (var is = Files.newInputStream(CONFIG_PATH)) {
+                Properties prop = new Properties();
+                prop.load(is);
+                Auth.setToken(prop.getProperty("auth_token", ""));
+            } catch (IOException e) {
+                LOGGER.error("[Glaze] Failed to load token config", e);
+            }
         }
+        // Load settings
+        GlazeSettings.load();
     }
 
-    private static void saveConfig() {
+    private static void save() {
         try {
             Files.createDirectories(CONFIG_DIR);
             Properties prop = new Properties();
@@ -50,7 +55,7 @@ public class GlazeConfig {
 
         public static void updateToken(String newToken) {
             setToken(newToken);
-            saveConfig(); // Persist to glaze.properties immediately
+            save(); // Persist to glaze.properties immediately
         }
     }
 }

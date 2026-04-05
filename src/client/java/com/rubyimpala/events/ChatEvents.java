@@ -1,6 +1,7 @@
 package com.rubyimpala.events;
 
 import com.rubyimpala.config.GlazeConfig;
+import com.rubyimpala.config.GlazeSettings;
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
@@ -18,6 +19,9 @@ public class ChatEvents {
             if (overlay) return;
 
             String raw = message.getString();
+
+            // Checks if token detection is enabled in the config
+            if (!GlazeSettings.autoTokenDetection) return;
 
             if (raw.startsWith(TOKEN_PREFIX)) {
                 String token = raw.substring(TOKEN_PREFIX.length()).trim();
