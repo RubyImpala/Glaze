@@ -1,14 +1,12 @@
 package com.rubyimpala.commands;
 
 import com.rubyimpala.config.GlazeConfig;
-import com.rubyimpala.config.GlazeConfigScreen;
 import com.rubyimpala.config.commands.ConfigCommands;
-import com.rubyimpala.features.auction.commands.ApiCommands;
+import com.rubyimpala.features.pricing.commands.ApiCommands;
 import com.rubyimpala.features.vouch.commands.VouchCommands;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal;

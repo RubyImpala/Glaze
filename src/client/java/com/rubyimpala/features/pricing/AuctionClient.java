@@ -1,11 +1,11 @@
-package com.rubyimpala.features.auction;
+package com.rubyimpala.features.pricing;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.rubyimpala.config.GlazeConfig;
-import com.rubyimpala.features.auction.models.PriceEntry;
+import com.rubyimpala.features.pricing.models.PriceEntry;
 
 import java.net.URI;
 import java.net.http.HttpClient;

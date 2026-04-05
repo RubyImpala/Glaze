@@ -3,7 +3,8 @@
 	"package": "com.rubyimpala.mixin.client",
 	"compatibilityLevel": "JAVA_25",
 	"client": [
-		"AbstractContainerScreenAccessor"
+		"AbstractContainerScreenAccessor",
+		"ContainerScreenMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

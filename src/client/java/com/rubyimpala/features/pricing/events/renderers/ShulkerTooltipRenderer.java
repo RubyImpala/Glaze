@@ -1,9 +1,9 @@
-package com.rubyimpala.features.auction.events.renderers;
+package com.rubyimpala.features.pricing.events.renderers;
 
 import com.rubyimpala.config.GlazeSettings;
-import com.rubyimpala.features.auction.AuctionService;
-import com.rubyimpala.features.auction.models.ItemValueEntry;
-import com.rubyimpala.features.auction.models.ShulkerValueResult;
+import com.rubyimpala.features.pricing.AuctionService;
+import com.rubyimpala.features.pricing.models.ItemValueEntry;
+import com.rubyimpala.features.pricing.models.ShulkerValueResult;
 import com.rubyimpala.util.DisplayUtils;
 import com.rubyimpala.util.HintComponents;
 import net.minecraft.ChatFormatting;

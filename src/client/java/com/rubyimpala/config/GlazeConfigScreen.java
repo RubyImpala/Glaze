@@ -137,6 +137,14 @@ public class GlazeConfigScreen {
                 .setSaveConsumer(v -> GlazeSettings.vouchSystemEnabled = v)
                 .build());
 
+        // Button to redirect to Minecraft's keybind setting
+        ConfigCategory keybinds = builder.getOrCreateCategory(
+                Component.literal("Keybinds"));
+
+        keybinds.addEntry(entry.startTextDescription(
+                        Component.literal("Keybinds can be changed in Options → Controls → Key Binds under the \"Glaze\" category."))
+                .build());
+
         return builder.build();
     }
 }

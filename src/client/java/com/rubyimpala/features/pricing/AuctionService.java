@@ -1,9 +1,10 @@
-package com.rubyimpala.features.auction;
+package com.rubyimpala.features.pricing;
 
 import com.rubyimpala.config.GlazeConfig;
-import com.rubyimpala.features.auction.models.ItemValueEntry;
-import com.rubyimpala.features.auction.models.PriceEntry;
-import com.rubyimpala.features.auction.models.ShulkerValueResult;
+import com.rubyimpala.features.pricing.models.ItemValueEntry;
+import com.rubyimpala.features.pricing.models.PriceEntry;
+import com.rubyimpala.features.pricing.models.ShulkerValueResult;
+import com.rubyimpala.util.StringUtils;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.ItemStack;
@@ -93,9 +94,7 @@ public class AuctionService {
     // The actual fetch logic, shared by both:
     private static void doFetch(String itemId) {
         try {
-            String searchTerm = itemId.contains(":")
-                    ? itemId.split(":")[1].replace("_", " ")
-                    : itemId.replace("_", " ");
+            String searchTerm = StringUtils.idToSearchTerm(itemId);
 
             var json = AuctionClient.fetchRaw(searchTerm);
             var allEntries = AuctionClient.flattenResults(json);

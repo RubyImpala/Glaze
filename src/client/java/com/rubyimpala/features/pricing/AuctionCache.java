@@ -1,7 +1,7 @@
-package com.rubyimpala.features.auction;
+package com.rubyimpala.features.pricing;
 
 import com.rubyimpala.config.GlazeSettings;
-import com.rubyimpala.features.auction.models.PriceEntry;
+import com.rubyimpala.features.pricing.models.PriceEntry;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;

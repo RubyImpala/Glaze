@@ -1,4 +1,4 @@
-package com.rubyimpala.features.auction;
+package com.rubyimpala.features.pricing;
 
 public class AuctionHoverState {
     // The item ID the player is currently hovering over.

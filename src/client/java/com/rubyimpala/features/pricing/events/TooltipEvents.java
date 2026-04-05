@@ -1,10 +1,9 @@
-package com.rubyimpala.features.auction.events;
+package com.rubyimpala.features.pricing.events;
 
-import com.rubyimpala.features.auction.AuctionCache;
-import com.rubyimpala.features.auction.AuctionHoverState;
-import com.rubyimpala.features.auction.AuctionService;
-import com.rubyimpala.features.auction.events.renderers.ItemTooltipRenderer;
-import com.rubyimpala.features.auction.events.renderers.ShulkerTooltipRenderer;
+import com.rubyimpala.features.pricing.AuctionCache;
+import com.rubyimpala.features.pricing.AuctionService;
+import com.rubyimpala.features.pricing.events.renderers.ItemTooltipRenderer;
+import com.rubyimpala.features.pricing.events.renderers.ShulkerTooltipRenderer;
 import com.rubyimpala.mixin.client.AbstractContainerScreenAccessor;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.minecraft.client.Minecraft;

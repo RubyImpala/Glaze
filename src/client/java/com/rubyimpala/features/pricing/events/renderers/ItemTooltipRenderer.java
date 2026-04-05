@@ -1,10 +1,8 @@
-package com.rubyimpala.features.auction.events.renderers;
+package com.rubyimpala.features.pricing.events.renderers;
 
 import com.rubyimpala.config.GlazeSettings;
-import com.rubyimpala.features.auction.AuctionService;
-import com.rubyimpala.util.DisplayUtils;
+import com.rubyimpala.features.pricing.AuctionService;
 import com.rubyimpala.util.HintComponents;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;

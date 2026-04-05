@@ -1,4 +1,4 @@
-package com.rubyimpala.features.auction.commands;
+package com.rubyimpala.features.pricing.commands;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;

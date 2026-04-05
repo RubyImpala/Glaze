@@ -1,8 +1,8 @@
 package com.rubyimpala.util;
 
 import com.rubyimpala.config.GlazeSettings;
-import com.rubyimpala.features.auction.models.ItemValueEntry;
-import com.rubyimpala.features.auction.models.ShulkerValueResult;
+import com.rubyimpala.features.pricing.models.ItemValueEntry;
+import com.rubyimpala.features.pricing.models.ShulkerValueResult;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 

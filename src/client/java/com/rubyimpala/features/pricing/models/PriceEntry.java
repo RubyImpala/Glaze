@@ -1,4 +1,4 @@
-package com.rubyimpala.features.auction.models;
+package com.rubyimpala.features.pricing.models;
 
 import java.util.Map;
 
