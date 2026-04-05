@@ -1,6 +1,8 @@
 package com.rubyimpala.commands;
 
 import com.rubyimpala.config.GlazeConfig;
+import com.rubyimpala.features.auction.commands.ApiCommands;
+import com.rubyimpala.features.vouch.commands.VouchCommands;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.ChatFormatting;
@@ -15,7 +17,8 @@ public class GlazeCommands {
             var glazeRoot = literal("glaze");
 
             // Attach the branches from other classes
-            glazeRoot.then(ApiCommands.buildApiBranch());
+            glazeRoot.then(ApiCommands.buildApiBranch())
+                    .then(VouchCommands.buildVouchBranch());
 
             // Register the whole tree at once
             dispatcher.register(glazeRoot);
