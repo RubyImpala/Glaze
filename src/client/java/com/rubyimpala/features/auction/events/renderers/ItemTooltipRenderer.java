@@ -42,6 +42,8 @@ public class ItemTooltipRenderer {
     private static void renderNoListings(List<Component> lines) {
         lines.add(Component.literal("Price: ").withStyle(ChatFormatting.GOLD)
                 .append(Component.literal("No listings").withStyle(ChatFormatting.GRAY)));
+        lines.add(Component.literal("[R to reload]")
+                .withStyle(ChatFormatting.DARK_GRAY));
     }
 
     private static void renderUnitPrice(List<Component> lines, long unitPrice, boolean isStackable) {

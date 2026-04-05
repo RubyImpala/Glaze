@@ -80,7 +80,7 @@ public class AuctionClient {
             }
 
             String id = item.get("id").getAsString();
-            long totalPrice = entry.get("price").getAsInt();
+            long totalPrice = entry.get("price").getAsLong();
             int count = item.get("count").getAsInt();
 
             ahListings.add(new PriceEntry(id, totalPrice, count, now, enchantsMap));

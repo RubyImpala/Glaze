@@ -15,8 +15,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 public class AuctionService {
 
@@ -24,8 +23,14 @@ public class AuctionService {
 
     // A single background thread dedicated to API requests.
     // "daemon = true" means it won't stop the game from closing.
-    private static final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor(r -> {
-        Thread t = new Thread(r, "glaze-auction-fetch");
+    private static final ExecutorService PRIORITY_EXECUTOR = Executors.newSingleThreadExecutor(r -> {
+        Thread t = new Thread(r, "glaze-auction-priority");
+        t.setDaemon(true);
+        return t;
+    });
+
+    private static final ExecutorService BACKGROUND_EXECUTOR = Executors.newSingleThreadExecutor(r -> {
+        Thread t = new Thread(r, "glaze-auction-background");
         t.setDaemon(true);
         return t;
     });
@@ -47,7 +52,7 @@ public class AuctionService {
 
         // If data is stale and we're not already fetching, kick off a background fetch
         if (AuctionCache.isStale(itemId) && !AuctionCache.isPending(itemId)) {
-            fetchAsync(itemId);
+            fetchPriority(itemId);
         }
 
         // If we have never fetched OR the cache is stale (mid-refresh), show nothing yet
@@ -73,36 +78,41 @@ public class AuctionService {
         return AuctionCache.hasFetched(itemId) && AuctionCache.get(itemId).isEmpty();
     }
 
-    // Runs the API fetch on the background thread
+    // Hovered items — goes to priority executor
+    public static void fetchPriority(String itemId) {
+        AuctionCache.markPending(itemId);
+        PRIORITY_EXECUTOR.submit(() -> doFetch(itemId));
+    }
+
+    // Background fetches — goes to background executor
     private static void fetchAsync(String itemId) {
         AuctionCache.markPending(itemId);
-
-        EXECUTOR.submit(() -> {
-            try {
-                // Convert "minecraft:diamond" -> "diamond" for the search query
-                // Also replace underscores: "iron_sword" -> "iron sword"
-                String searchTerm = itemId.contains(":")
-                        ? itemId.split(":")[1].replace("_", " ")
-                        : itemId.replace("_", " ");
-
-                var json = AuctionClient.fetchRaw(searchTerm);
-                var allEntries = AuctionClient.flattenResults(json);
-
-                // The API search returns anything matching the keyword,
-                // so we filter down to only exact item ID matches
-                List<PriceEntry> filtered = allEntries.stream()
-                        .filter(e -> e.id().equals(itemId))
-                        .toList();
-
-                AuctionCache.put(itemId, filtered);
-                LOGGER.info("[Glaze] Cached {} listing(s) for {}", filtered.size(), itemId);
-
-            } catch (Exception e) {
-                LOGGER.error("[Glaze] Failed to fetch prices for {}: {}", itemId, e.getMessage());
-                AuctionCache.markFailed(itemId);
-            }
-        });
+        BACKGROUND_EXECUTOR.submit(() -> doFetch(itemId));
     }
+
+    // The actual fetch logic, shared by both:
+    private static void doFetch(String itemId) {
+        try {
+            String searchTerm = itemId.contains(":")
+                    ? itemId.split(":")[1].replace("_", " ")
+                    : itemId.replace("_", " ");
+
+            var json = AuctionClient.fetchRaw(searchTerm);
+            var allEntries = AuctionClient.flattenResults(json);
+
+            List<PriceEntry> filtered = allEntries.stream()
+                    .filter(e -> e.id().equals(itemId))
+                    .toList();
+
+            AuctionCache.put(itemId, filtered);
+            LOGGER.info("[Glaze] Cached {} listing(s) for {}", filtered.size(), itemId);
+
+        } catch (Exception e) {
+            LOGGER.error("[Glaze] Failed to fetch prices for {}: {}", itemId, e.getMessage());
+            AuctionCache.markFailed(itemId);
+        }
+    }
+
     /**
      * Calculates the total AH value of all items inside a shulker box.
      * Returns null if the stack isn't a shulker or has no contents component.
