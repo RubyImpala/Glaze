@@ -1,5 +1,7 @@
 package com.rubyimpala.util;
 
+import com.rubyimpala.config.GlazeSettings;
+
 public class DisplayUtils {
 
     /**
@@ -13,17 +15,24 @@ public class DisplayUtils {
      *   1000000000 -> "$1B"
      */
     public static String formatPrice(long price) {
-        if (price >= 1_000_000_000_000L) {
-            return "$" + formatDecimal(price / 1_000_000_000_000.0) + "T";
-        } else if (price >= 1_000_000_000) {
-            return "$" + formatDecimal(price / 1_000_000_000.0) + "B";
-        } else if (price >= 1_000_000) {
-            return "$" + formatDecimal(price / 1_000_000.0) + "M";
-        } else if (price >= 1_000) {
-            return "$" + formatDecimal(price / 1_000.0) + "K";
-        } else {
-            return "$" + price;
-        }
+        String formatted = switch (GlazeSettings.priceFormat) {
+            case FORMATTED -> formatSuffixed(price);
+            case RAW ->       String.valueOf(price);
+            case COMMA ->     String.format("%,d", price);
+        };
+        return GlazeSettings.showDollarSign ? "$" + formatted : formatted;
+    }
+
+    private static String formatSuffixed(long price) {
+        if (price >= 1_000_000_000_000L)
+            return formatDecimal(price / 1_000_000_000_000.0) + "T";
+        if (price >= 1_000_000_000L)
+            return formatDecimal(price / 1_000_000_000.0) + "B";
+        if (price >= 1_000_000)
+            return formatDecimal(price / 1_000_000.0) + "M";
+        if (price >= 1_000)
+            return formatDecimal(price / 1_000.0) + "K";
+        return String.valueOf(price);
     }
 
     // Strips unnecessary trailing zeros: 1.0 -> "1", 1.5 -> "1.5"

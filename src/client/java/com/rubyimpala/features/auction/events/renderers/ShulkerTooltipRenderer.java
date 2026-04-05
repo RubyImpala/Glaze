@@ -1,9 +1,11 @@
 package com.rubyimpala.features.auction.events.renderers;
 
+import com.rubyimpala.config.GlazeSettings;
 import com.rubyimpala.features.auction.AuctionService;
 import com.rubyimpala.features.auction.models.ItemValueEntry;
 import com.rubyimpala.features.auction.models.ShulkerValueResult;
 import com.rubyimpala.util.DisplayUtils;
+import com.rubyimpala.util.HintComponents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
@@ -15,6 +17,9 @@ import java.util.List;
 public class ShulkerTooltipRenderer {
 
     public static void render(ItemStack stack, List<Component> lines) {
+        // Checks if it's enabled in the settings
+        if (!GlazeSettings.showShulkerValuation) return;
+
         ShulkerValueResult result = AuctionService.getShulkerBreakdown(stack);
         if (result == null) return;
 
@@ -26,28 +31,11 @@ public class ShulkerTooltipRenderer {
     }
 
     private static void renderSummary(ShulkerValueResult result, List<Component> lines) {
-        lines.add(Component.literal("Price: ").withStyle(ChatFormatting.GOLD)
-                .append(Component.literal(DisplayUtils.formatPrice(result.totalPrice()))
-                        .withStyle(ChatFormatting.GREEN))
-                .append(loadingSuffix(result.hasLoading())));
-
-        lines.add(Component.literal("[Shift for breakdown]")
-                .withStyle(ChatFormatting.DARK_GRAY));
-        lines.add(Component.literal("[R to reload]")
-                .withStyle(ChatFormatting.DARK_GRAY));
+        HintComponents.addShulkerSummary(lines, result.totalPrice(), result.hasLoading());
     }
 
     private static void renderBreakdown(ShulkerValueResult result, List<Component> lines) {
-        lines.add(Component.literal("━━ Price Breakdown ━━").withStyle(ChatFormatting.GOLD));
-
-        for (ItemValueEntry entry : result.entries()) {
-            lines.add(renderEntry(entry));
-        }
-
-        lines.add(Component.literal("  Total: ").withStyle(ChatFormatting.GOLD)
-                .append(Component.literal(DisplayUtils.formatPrice(result.totalPrice()))
-                        .withStyle(ChatFormatting.GREEN))
-                .append(loadingSuffix(result.hasLoading())));
+        HintComponents.addShulkerBreakdown(lines, result);
     }
 
     private static Component renderEntry(ItemValueEntry entry) {

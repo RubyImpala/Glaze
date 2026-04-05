@@ -1,7 +1,9 @@
 package com.rubyimpala.features.auction.events.renderers;
 
+import com.rubyimpala.config.GlazeSettings;
 import com.rubyimpala.features.auction.AuctionService;
 import com.rubyimpala.util.DisplayUtils;
+import com.rubyimpala.util.HintComponents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -14,6 +16,9 @@ import java.util.List;
 public class ItemTooltipRenderer {
 
     public static void render(ItemStack stack, List<Component> lines) {
+        // Checks if it's enabled in the settings
+        if (!GlazeSettings.showPriceTooltips) return;
+
         String itemId = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
         int maxStackSize = stack.getMaxStackSize();
         boolean isStackable = maxStackSize > 1;
@@ -35,38 +40,26 @@ public class ItemTooltipRenderer {
     }
 
     private static void renderLoading(List<Component> lines) {
-        lines.add(Component.literal("Price: ").withStyle(ChatFormatting.GOLD)
-                .append(Component.literal("Loading...").withStyle(ChatFormatting.GRAY)));
+        HintComponents.addLoadingTooltip(lines);
     }
 
     private static void renderNoListings(List<Component> lines) {
-        lines.add(Component.literal("Price: ").withStyle(ChatFormatting.GOLD)
-                .append(Component.literal("No listings").withStyle(ChatFormatting.GRAY)));
-        lines.add(Component.literal("[R to reload]")
-                .withStyle(ChatFormatting.DARK_GRAY));
+        HintComponents.addNoListingsTooltip(lines);
     }
 
     private static void renderUnitPrice(List<Component> lines, long unitPrice, boolean isStackable) {
-        lines.add(Component.literal("Price: ").withStyle(ChatFormatting.GOLD)
-                .append(Component.literal(DisplayUtils.formatPrice(unitPrice))
-                        .withStyle(ChatFormatting.GREEN)));
+        HintComponents.addPriceTooltip(lines, unitPrice);
         if (isStackable) {
-            lines.add(Component.literal("[Shift for stack price]")
-                    .withStyle(ChatFormatting.DARK_GRAY));
+            HintComponents.addStackPriceHint(lines);
         }
-        lines.add(Component.literal("[R to reload]")
-                .withStyle(ChatFormatting.DARK_GRAY));
+        HintComponents.addReloadHint(lines);
     }
 
     private static void renderStackPrice(List<Component> lines, long unitPrice, int maxStackSize) {
         long stackPrice = unitPrice * maxStackSize;
-        lines.add(Component.literal("Price (x" + maxStackSize + "): ").withStyle(ChatFormatting.GOLD)
-                .append(Component.literal(DisplayUtils.formatPrice(stackPrice))
-                        .withStyle(ChatFormatting.GREEN)));
-        lines.add(Component.literal("[Unshift for unit price]")
-                .withStyle(ChatFormatting.DARK_GRAY));
-        lines.add(Component.literal("[R to reload]")
-                .withStyle(ChatFormatting.DARK_GRAY));
+        HintComponents.addStackPriceTooltip(lines, stackPrice, maxStackSize);
+        HintComponents.addUnshiftHint(lines);
+        HintComponents.addReloadHint(lines);
     }
 
     private static boolean isShiftDown() {
