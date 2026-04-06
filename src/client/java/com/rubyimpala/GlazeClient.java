@@ -3,6 +3,7 @@ package com.rubyimpala;
 import com.rubyimpala.commands.GlazeCommands;
 import com.rubyimpala.config.GlazeConfig;
 import com.rubyimpala.events.ChatEvents;
+import com.rubyimpala.features.chatrules.ChatRuleService;
 import com.rubyimpala.features.pricing.events.TooltipEvents;
 import com.rubyimpala.features.ahsearch.input.AhSearchKeybinds;
 
@@ -17,5 +18,6 @@ public class GlazeClient implements ClientModInitializer {
 		ChatEvents.register();
 		GlazeConfig.load();
 		AhSearchKeybinds.register();
+		ChatRuleService.load();
 	}
 }

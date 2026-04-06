@@ -23,6 +23,7 @@ public class GlazeSettings {
     public static boolean showShulkerBreakdownHint = true;
     public static boolean showDollarSign = true;
     public static PriceFormat priceFormat = PriceFormat.FORMATTED;
+    public static boolean showRedirectNotification = true;
 
     // --- Cache ---
     public static int cacheTtlMinutes = 5;
@@ -52,6 +53,7 @@ public class GlazeSettings {
             autoTokenDetection      = bool(prop, "auto_token_detection", true);
             cacheTtlMinutes         = integer(prop, "cache_ttl_minutes", 5, 1, 10);
             priceFormat             = parseEnum(prop, "price_format", PriceFormat.FORMATTED);
+            showRedirectNotification = bool(prop, "show_redirect_notification", true);
 
         } catch (IOException e) {
             LOGGER.error("[Glaze] Failed to load settings", e);
@@ -73,6 +75,7 @@ public class GlazeSettings {
             prop.setProperty("auto_token_detection",        String.valueOf(autoTokenDetection));
             prop.setProperty("cache_ttl_minutes",           String.valueOf(cacheTtlMinutes));
             prop.setProperty("price_format",                priceFormat.name());
+            prop.setProperty("show_redirect_notification", String.valueOf(showRedirectNotification));
 
             try (OutputStream os = Files.newOutputStream(CONFIG_PATH_SETTINGS)) {
                 prop.store(os, "Glaze Settings");
