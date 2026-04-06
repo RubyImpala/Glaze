@@ -4,7 +4,8 @@
 	"compatibilityLevel": "JAVA_25",
 	"client": [
 		"AbstractContainerScreenAccessor",
-		"ContainerScreenMixin"
+		"ContainerScreenMixin",
+		"ChatInputMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
