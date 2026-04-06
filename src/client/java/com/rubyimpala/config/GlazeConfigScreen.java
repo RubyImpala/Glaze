@@ -9,7 +9,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
+import java.util.ArrayList;
+
 public class GlazeConfigScreen {
+    private static boolean resetConfirmPending = false;
 
     public static Screen build(Screen parent) {
         return YetAnotherConfigLib.createBuilder()
@@ -175,14 +178,25 @@ public class GlazeConfigScreen {
 
         // Show reset to defaul button
         categoryBuilder.option(ButtonOption.createBuilder()
-                .name(Component.literal("§4Reset Rules To Default"))
-                .text(Component.literal("Reset"))
+                .name(Component.literal(resetConfirmPending
+                        ? "§cClick again to confirm reset!"
+                        : "§4Reset Rules To Default"))
+                .text(Component.literal(resetConfirmPending ? "§cConfirm" : "Reset"))
                 .action((screen, opt) -> {
-                    ChatRuleStorage.save(ChatRuleStorage.getDefaults()
-                    );
-                    Minecraft.getInstance().execute(() ->
-                            Minecraft.getInstance().setScreen(
-                                    GlazeConfigScreen.build(parent)));
+                    if (!resetConfirmPending) {
+                        resetConfirmPending = true;
+                        // Regenerate screen to show confirm state
+                        Minecraft.getInstance().execute(() ->
+                                Minecraft.getInstance().setScreen(
+                                        GlazeConfigScreen.build(parent)));
+                    } else {
+                        resetConfirmPending = false;
+                        ChatRuleService.setRules(new ArrayList<>(ChatRuleStorage.getDefaults()));
+                        ChatRuleService.save();
+                        Minecraft.getInstance().execute(() ->
+                                Minecraft.getInstance().setScreen(
+                                        GlazeConfigScreen.build(parent)));
+                    }
                 })
                 .build());
 

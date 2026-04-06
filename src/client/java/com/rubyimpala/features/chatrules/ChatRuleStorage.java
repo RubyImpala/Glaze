@@ -23,7 +23,7 @@ public class ChatRuleStorage {
 
     public static List<ChatRule> load() {
         if (defaults.isEmpty()){
-            List<ChatRule> defaults = getDefaults();
+            defaults = getDefaults();
         }
 
         if (!Files.exists(RULES_PATH)) {
@@ -71,6 +71,7 @@ public class ChatRuleStorage {
     }
 
     public static List<ChatRule> getDefaults() {
+        defaults.clear();
 
 //        for (String material : StringUtils.MATERIALS) {
             for (String itemType : StringUtils.ALL_ITEMS) {
@@ -80,7 +81,7 @@ public class ChatRuleStorage {
                     String enchants = StringUtils.ITEM_ENCHANTS.get(itemType);
 //                    String fullNameAndEnchants = fullName + "  " + enchants;
                     String command = "/ah";
-                    String commandAndFullNameAndEnchants = command + " " + enchants/*fullNameAndEnchants*/;
+                    String commandAndFullNameAndEnchants = command + " " + itemType + " " + enchants/*fullNameAndEnchants*/;
 
                     defaults.add(new ChatRule("Maxed " + itemType/*fullName*/, "/ah maxed " + itemType, commandAndFullNameAndEnchants, true, false));
                 }
