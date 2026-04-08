@@ -12,7 +12,7 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.rubyimpala.config.GlazeConstants.CONFIG_DIR;
+import static com.rubyimpala.util.GlazeConstants.CONFIG_DIR;
 
 public class VouchStorage implements VouchRepository {
 

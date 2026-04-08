@@ -1,4 +1,4 @@
-package com.rubyimpala.config;
+package com.rubyimpala.util;
 
 import java.nio.file.Path;
 

@@ -22,9 +22,6 @@ public class GlazeConfigScreen {
                 // ── Auction House ──────────────────────────────
                 .category(AuctionHouseCategory.build(parent))
 
-                // ── Price Format ───────────────────────────────
-                .category(PriceFormatCategory.build(parent))
-
                 // ── API & Token ────────────────────────────────
                 .category(ApiTokenCategory.build(parent))
 
@@ -33,6 +30,9 @@ public class GlazeConfigScreen {
 
                 // ── Chat Rules ─────────────────────────────────
                 .category(ChatRulesCategory.build(parent))
+
+                // ── Command Keybinds ───────────────────────────
+                .category(CommandKeybindsCategory.build(parent))
 
                 .build()
                 .generateScreen(parent);

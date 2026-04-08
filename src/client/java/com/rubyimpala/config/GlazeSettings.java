@@ -8,8 +8,8 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.util.Properties;
 
-import static com.rubyimpala.config.GlazeConstants.CONFIG_DIR;
-import static com.rubyimpala.config.GlazeConstants.CONFIG_PATH_SETTINGS;
+import static com.rubyimpala.util.GlazeConstants.CONFIG_DIR;
+import static com.rubyimpala.util.GlazeConstants.CONFIG_PATH_SETTINGS;
 
 public class GlazeSettings {
 

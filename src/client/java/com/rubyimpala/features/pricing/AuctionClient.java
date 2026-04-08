@@ -14,7 +14,7 @@ import java.net.http.HttpResponse;
 import java.util.*;
 
 import static com.rubyimpala.Glaze.LOGGER;
-import static com.rubyimpala.config.GlazeConstants.AUCTION_API_URL;
+import static com.rubyimpala.util.GlazeConstants.AUCTION_API_URL;
 
 public class AuctionClient {
 
