@@ -10,7 +10,7 @@ public class AuctionCache {
 
     // How long before we consider cached data "old" and re-fetch (5 minutes)
     private static long getTtlMs() {
-        return GlazeSettings.cacheTtlMinutes * 60 * 1000L;
+        return GlazeSettings.CONFIG().cacheTtlMinutes * 60 * 1000L;
     }
     // Maps item ID (e.g. "minecraft:diamond") -> its list of AH listings
     private static final Map<String, List<PriceEntry>> cache = new ConcurrentHashMap<>();

@@ -10,7 +10,7 @@ import static net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal;
 public class GlazeCommands {
 
     public static void register() {
-        ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
+        ClientCommandRegistrationCallback.EVENT.register((dispatcher, _) -> {
             var glazeRoot = literal("glaze");
 
             // Attach the branches from other classes

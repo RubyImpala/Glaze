@@ -1,6 +1,6 @@
 package com.rubyimpala.features.pricing;
 
-import com.rubyimpala.config.GlazeConfig;
+import com.rubyimpala.config.GlazeSettings;
 import com.rubyimpala.features.pricing.models.ItemValueEntry;
 import com.rubyimpala.features.pricing.models.PriceEntry;
 import com.rubyimpala.features.pricing.models.ShulkerValueResult;
@@ -30,15 +30,8 @@ public class AuctionService {
         return t;
     });
 
-    private static final ExecutorService BACKGROUND_EXECUTOR = Executors.newSingleThreadExecutor(r -> {
-        Thread t = new Thread(r, "glaze-auction-background");
-        t.setDaemon(true);
-        return t;
-    });
-
     /**
      * The main method you'll call from the tooltip.
-     *
      * Returns the lowest AH price for this item if we have it cached.
      * If the cache is stale, it kicks off a background fetch automatically.
      *
@@ -47,11 +40,11 @@ public class AuctionService {
      */
     public static Optional<Long> getLowestPrice(String itemId) {
         // Don't do anything if the user hasn't set their API key yet
-        if (GlazeConfig.Auth.getToken().isEmpty()) {
+        if (GlazeSettings.CONFIG().apiToken.isEmpty()) {
             return Optional.empty();
         }
 
-        // If data is stale and we're not already fetching, kick off a background fetch
+        // If data is stale, and we're not already fetching, kick off a background fetch
         if (AuctionCache.isStale(itemId) && !AuctionCache.isPending(itemId)) {
             fetchPriority(itemId);
         }
@@ -83,12 +76,6 @@ public class AuctionService {
     public static void fetchPriority(String itemId) {
         AuctionCache.markPending(itemId);
         PRIORITY_EXECUTOR.submit(() -> doFetch(itemId));
-    }
-
-    // Background fetches — goes to background executor
-    private static void fetchAsync(String itemId) {
-        AuctionCache.markPending(itemId);
-        BACKGROUND_EXECUTOR.submit(() -> doFetch(itemId));
     }
 
     // The actual fetch logic, shared by both:
@@ -152,7 +139,7 @@ public class AuctionService {
                 entries.add(new ItemValueEntry(displayName, count, -1, true, false));
                 hasUnpriced = true;
             } else {
-                Long unitPrice = price.get();
+                long unitPrice = price.get();
                 entries.add(new ItemValueEntry(displayName, count, unitPrice, false, false));
                 total += unitPrice * count;
             }

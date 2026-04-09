@@ -12,18 +12,18 @@ import net.minecraft.network.chat.Component;
 
 public class CommandKeybindsCategory {
 
-    private static boolean justRegenerated = false;
+    static boolean justRegenerated = false;
 
     public static ConfigCategory build(Screen parent) {
-        var categoryBuilder = ConfigCategory.createBuilder()
+        var commandsCategoryBuilder = ConfigCategory.createBuilder()
                 .name(Component.literal("Command Keybinds"))
                 .tooltip(Component.literal(
                         "Bind commands to keys. Format: Y, CTRL+Y, SHIFT+F5, etc."));
 
-        categoryBuilder.option(ButtonOption.createBuilder()
+        commandsCategoryBuilder.option(ButtonOption.createBuilder()
                 .name(Component.literal("Add New Keybind"))
                 .text(Component.literal("Add"))
-                .action((screen, opt) -> {
+                .action((_, _) -> {
                     String defaultName = "Keybind " + (CommandKeybindService.getBinds().size() + 1);
                     CommandKeybindService.addBind(new CommandKeybind(
                             defaultName, "", "", true, false, KeybindContext.EVERYWHERE));
@@ -35,7 +35,7 @@ public class CommandKeybindsCategory {
                 .build());
 
         for (CommandKeybind bind : CommandKeybindService.getBinds()) {
-            categoryBuilder.group(OptionGroup.createBuilder()
+            commandsCategoryBuilder.group(OptionGroup.createBuilder()
                     .name(Component.literal(bind.name))
                     .collapsed(true)
 
@@ -44,7 +44,7 @@ public class CommandKeybindsCategory {
                             .binding("Keybind",
                                     () -> bind.name,
                                     v -> { bind.name = v; CommandKeybindService.save(); })
-                            .controller(opt -> StringControllerBuilder.create(opt))
+                            .controller(StringControllerBuilder::create)
                             .build())
 
                     .option(Option.<Boolean>createBuilder()
@@ -62,7 +62,7 @@ public class CommandKeybindsCategory {
                             .binding("",
                                     () -> bind.keybind,
                                     v -> { bind.keybind = v; CommandKeybindService.save(); })
-                            .controller(opt -> StringControllerBuilder.create(opt))
+                            .controller(StringControllerBuilder::create)
                             .build())
 
                     .option(Option.<String>createBuilder()
@@ -72,7 +72,7 @@ public class CommandKeybindsCategory {
                             .binding("",
                                     () -> bind.command,
                                     v -> { bind.command = v; CommandKeybindService.save(); })
-                            .controller(opt -> StringControllerBuilder.create(opt))
+                            .controller(StringControllerBuilder::create)
                             .build())
 
                     .option(Option.<Boolean>createBuilder()
@@ -105,7 +105,7 @@ public class CommandKeybindsCategory {
                     .option(ButtonOption.createBuilder()
                             .name(Component.literal("Delete Keybind"))
                             .text(Component.literal("§cDelete"))
-                            .action((screen, opt) -> {
+                            .action((_, _) -> {
                                 CommandKeybindService.removeBind(bind);
                                 justRegenerated = true;
                                 Minecraft.getInstance().execute(() ->
@@ -117,6 +117,6 @@ public class CommandKeybindsCategory {
                     .build());
         }
 
-        return categoryBuilder.build();
+        return commandsCategoryBuilder.build();
     }
 }

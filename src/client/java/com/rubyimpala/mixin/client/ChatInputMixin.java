@@ -16,8 +16,8 @@ import java.util.Optional;
 public class ChatInputMixin {
 
     @Inject(method = "handleChatInput", at = @At("HEAD"), cancellable = true)
-    private void onHandleChatInput(String message, boolean addToHistory, CallbackInfo ci) {
-        Optional<String> transformed = ChatRuleService.apply(message);
+    private void onHandleChatInput(String msg, boolean addToRecent, CallbackInfo ci) {
+        Optional<String> transformed = ChatRuleService.apply(msg);
         if (transformed.isEmpty()) return;
 
         // Cancel the original message
@@ -27,17 +27,22 @@ public class ChatInputMixin {
         Minecraft minecraft = Minecraft.getInstance();
 
         // Show notification if enabled
-        if (GlazeSettings.showRedirectNotification) {
-            minecraft.player.sendSystemMessage(
-                    Component.literal("§6[Glaze] §7Redirected: §e" + message + " §7→ §a" + result)
+        if (GlazeSettings.CONFIG().showRedirectNotification) {
+            var player = minecraft.player;
+            if (player == null) return;
+            player.sendSystemMessage(
+                    Component.literal("§6[Glaze] §7Redirected: §e" + msg + " §7→ §a" + result)
             );
         }
 
         // Send the transformed message — command or chat
+        var connection = minecraft.getConnection();
+        if (connection == null) return;
+
         if (result.startsWith("/")) {
-            minecraft.getConnection().sendCommand(result.substring(1));
+            connection.sendCommand(result.substring(1));
         } else {
-            minecraft.getConnection().sendChat(result);
+            connection.sendChat(result);
         }
     }
 }

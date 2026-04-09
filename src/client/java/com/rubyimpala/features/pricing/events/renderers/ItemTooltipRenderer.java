@@ -15,7 +15,7 @@ public class ItemTooltipRenderer {
 
     public static void render(ItemStack stack, List<Component> lines) {
         // Checks if it's enabled in the settings
-        if (!GlazeSettings.showPriceTooltips) return;
+        if (!GlazeSettings.CONFIG().showPriceTooltips) return;
 
         String itemId = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
         int maxStackSize = stack.getMaxStackSize();
@@ -30,9 +30,12 @@ public class ItemTooltipRenderer {
             AuctionService.getLowestPrice(itemId).ifPresent(unitPrice -> {
                 if (shiftDown && isStackable) {
                     renderStackPrice(lines, unitPrice, maxStackSize);
+                    if (!GlazeSettings.CONFIG().showStackPriceHint) HintComponents.addUnshiftHint(lines);
                 } else {
                     renderUnitPrice(lines, unitPrice, isStackable);
+                    if (isStackable && !GlazeSettings.CONFIG().showStackPriceHint) HintComponents.addStackPriceHint(lines);
                 }
+                if (GlazeSettings.CONFIG().showReloadHint) HintComponents.addReloadHint(lines);
             });
         }
     }
@@ -45,24 +48,15 @@ public class ItemTooltipRenderer {
         HintComponents.addNoListingsTooltip(lines);
     }
 
-    private static void renderUnitPrice(List<Component> lines, long unitPrice, boolean isStackable) {
-        HintComponents.addPriceTooltip(lines, unitPrice);
-        if (isStackable) {
-            HintComponents.addStackPriceHint(lines);
-        }
-        HintComponents.addReloadHint(lines);
-    }
+    private static void renderUnitPrice(List<Component> lines, long unitPrice, boolean isStackable) { HintComponents.addPriceTooltip(lines, unitPrice); }
 
     private static void renderStackPrice(List<Component> lines, long unitPrice, int maxStackSize) {
         long stackPrice = unitPrice * maxStackSize;
         HintComponents.addStackPriceTooltip(lines, stackPrice, maxStackSize);
-        HintComponents.addUnshiftHint(lines);
-        HintComponents.addReloadHint(lines);
     }
 
     private static boolean isShiftDown() {
         long window = Minecraft.getInstance().getWindow().handle();
-        return GLFW.glfwGetKey(window, GLFW.GLFW_KEY_LEFT_SHIFT) == GLFW.GLFW_PRESS
-                || GLFW.glfwGetKey(window, GLFW.GLFW_KEY_RIGHT_SHIFT) == GLFW.GLFW_PRESS;
+        return GLFW.glfwGetKey(window, GLFW.GLFW_KEY_LEFT_SHIFT) == GLFW.GLFW_PRESS;
     }
 }

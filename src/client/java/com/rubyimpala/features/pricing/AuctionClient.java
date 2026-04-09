@@ -4,7 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.rubyimpala.config.GlazeConfig;
+import com.rubyimpala.config.GlazeSettings;
 import com.rubyimpala.features.pricing.models.PriceEntry;
 
 import java.net.URI;
@@ -13,7 +13,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.*;
 
-import static com.rubyimpala.Glaze.LOGGER;
+import static com.rubyimpala.GlazeClient.LOGGER;
 import static com.rubyimpala.util.GlazeConstants.AUCTION_API_URL;
 
 public class AuctionClient {
@@ -28,7 +28,7 @@ public class AuctionClient {
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(AUCTION_API_URL))
-                    .header("Authorization", GlazeConfig.Auth.getToken())
+                    .header("Authorization", GlazeSettings.CONFIG().apiToken)
                     .header("Content-Type", "application/json")
                     .header("Accept", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
@@ -40,9 +40,9 @@ public class AuctionClient {
                 return JsonParser.parseString(response.body());
             }
 
-            LOGGER.warn("API returned status: " + response.statusCode());
+            LOGGER.warn("API returned status: {}", response.statusCode());
         } catch (Exception e) {
-            LOGGER.error("API Fetch Failed: " + e.getMessage());
+            LOGGER.error("API Fetch Failed: {}", e.getMessage());
         }
         return null;
     }

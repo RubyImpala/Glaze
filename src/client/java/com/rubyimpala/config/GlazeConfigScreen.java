@@ -1,40 +1,32 @@
 package com.rubyimpala.config;
 
 import com.rubyimpala.config.categories.*;
-import com.rubyimpala.features.chatrules.ChatRuleService;
-import com.rubyimpala.features.chatrules.ChatRuleStorage;
-import com.rubyimpala.features.chatrules.models.ChatRule;
 import dev.isxander.yacl3.api.*;
-import dev.isxander.yacl3.api.controller.*;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-
-import java.util.ArrayList;
 
 public class GlazeConfigScreen {
 
     public static Screen build(Screen parent) {
-        return YetAnotherConfigLib.createBuilder()
+        var configScreen = YetAnotherConfigLib.createBuilder()
                 .title(Component.literal("Glaze Settings"))
-                .save(GlazeSettings::save)
+                .save(GlazeSettings::save);
 
-                // ── Auction House ──────────────────────────────
-                .category(AuctionHouseCategory.build(parent))
+        // ── Auction House ─────────────────────────────────────────
+        configScreen.category(AuctionHouseCategory.build());
 
-                // ── API & Token ────────────────────────────────
-                .category(ApiTokenCategory.build(parent))
+        // ── API & Token ───────────────────────────────────────────
+        configScreen.category(ApiTokenCategory.build());
 
-                // ── Vouch System ───────────────────────────────
-                .category(VouchCategory.build(parent))
+        // ── Vouch System ──────────────────────────────────────────
+        configScreen.category(VouchCategory.build());
 
-                // ── Chat Rules ─────────────────────────────────
-                .category(ChatRulesCategory.build(parent))
+        // ── Chat Rules ────────────────────────────────────────────
+        configScreen.category(ChatRulesCategory.build(parent));
 
-                // ── Command Keybinds ───────────────────────────
-                .category(CommandKeybindsCategory.build(parent))
+        // ── Command Keybinds ──────────────────────────────────────
+        configScreen.category(CommandKeybindsCategory.build(parent));
 
-                .build()
-                .generateScreen(parent);
+        return configScreen.build().generateScreen(parent);
     }
 }

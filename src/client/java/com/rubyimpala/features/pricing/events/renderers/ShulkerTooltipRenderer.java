@@ -18,16 +18,21 @@ public class ShulkerTooltipRenderer {
 
     public static void render(ItemStack stack, List<Component> lines) {
         // Checks if it's enabled in the settings
-        if (!GlazeSettings.showShulkerValuation) return;
+        if (!GlazeSettings.CONFIG().showShulkerValuation) return;
 
         ShulkerValueResult result = AuctionService.getShulkerBreakdown(stack);
         if (result == null) return;
 
         if (isShiftDown()) {
             renderBreakdown(result, lines);
+
         } else {
             renderSummary(result, lines);
+            if(GlazeSettings.CONFIG().showShulkerBreakdownHint) HintComponents.addShulkerBreakdownHint(lines);
         }
+
+        if (GlazeSettings.CONFIG().showReloadHint) HintComponents.addReloadHint(lines);
+
     }
 
     private static void renderSummary(ShulkerValueResult result, List<Component> lines) {
@@ -36,22 +41,6 @@ public class ShulkerTooltipRenderer {
 
     private static void renderBreakdown(ShulkerValueResult result, List<Component> lines) {
         HintComponents.addShulkerBreakdown(lines, result);
-    }
-
-    private static Component renderEntry(ItemValueEntry entry) {
-        String prefix = "  " + entry.count() + "x " + entry.displayName() + ": ";
-
-        if (entry.loading()) {
-            return Component.literal(prefix).withStyle(ChatFormatting.GRAY)
-                    .append(Component.literal("Loading...").withStyle(ChatFormatting.DARK_GRAY));
-        } else if (entry.unpriced()) {
-            return Component.literal(prefix).withStyle(ChatFormatting.GRAY)
-                    .append(Component.literal("Unpriced").withStyle(ChatFormatting.RED));
-        } else {
-            return Component.literal(prefix).withStyle(ChatFormatting.GRAY)
-                    .append(Component.literal(DisplayUtils.formatPrice(entry.stackTotal()))
-                            .withStyle(ChatFormatting.GREEN));
-        }
     }
 
     private static Component loadingSuffix(boolean hasLoading) {

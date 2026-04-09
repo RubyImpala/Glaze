@@ -15,12 +15,12 @@ public class DisplayUtils {
      *   1000000000 -> "$1B"
      */
     public static String formatPrice(long price) {
-        String formatted = switch (GlazeSettings.priceFormat) {
+        String formatted = switch (GlazeSettings.CONFIG().priceFormat) {
             case FORMATTED -> formatSuffixed(price);
             case RAW ->       String.valueOf(price);
             case COMMA ->     String.format("%,d", price);
         };
-        return GlazeSettings.showDollarSign ? "$" + formatted : formatted;
+        return GlazeSettings.CONFIG().showDollarSign ? "$" + formatted : formatted;
     }
 
     private static String formatSuffixed(long price) {

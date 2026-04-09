@@ -11,68 +11,56 @@ import java.util.List;
 public class HintComponents {
 
     public static void addLoadingTooltip(List<Component> lines){
-        if (!GlazeSettings.showPriceTooltips) return;
         lines.add(Component.literal("Price: ").withStyle(ChatFormatting.GOLD)
                 .append(Component.literal("Loading...").withStyle(ChatFormatting.GRAY)));
     }
 
     public static void addPriceTooltip(List<Component> lines, long unitPrice) {
-        if (!GlazeSettings.showPriceTooltips) return;
         lines.add(Component.literal("Price: ").withStyle(ChatFormatting.GOLD)
                 .append(Component.literal(DisplayUtils.formatPrice(unitPrice))
                         .withStyle(ChatFormatting.GREEN)));
     }
 
     public static void addNoListingsTooltip(List<Component> lines) {
-        if (!GlazeSettings.showPriceTooltips) return;
         lines.add(Component.literal("Price: ").withStyle(ChatFormatting.GOLD)
                 .append(Component.literal("No listings").withStyle(ChatFormatting.GRAY)));
         addReloadHint(lines);
     }
 
     public static void addStackPriceTooltip(List<Component> lines, long stackPrice, int maxStackSize) {
-        if (!GlazeSettings.showPriceTooltips) return;
         lines.add(Component.literal("Price (x" + maxStackSize + "): ").withStyle(ChatFormatting.GOLD)
                 .append(Component.literal(DisplayUtils.formatPrice(stackPrice))
                         .withStyle(ChatFormatting.GREEN)));
     }
 
     public static void addReloadHint(List<Component> lines) {
-        if (!GlazeSettings.showReloadHint) return;
         lines.add(Component.literal("[R to reload]")
                 .withStyle(ChatFormatting.DARK_GRAY));
     }
 
     public static void addStackPriceHint(List<Component> lines) {
-        if (!GlazeSettings.showStackPriceHint) return;
         lines.add(Component.literal("[Shift for stack price]")
                 .withStyle(ChatFormatting.DARK_GRAY));
     }
 
     public static void addUnshiftHint(List<Component> lines) {
-        if (!GlazeSettings.showStackPriceHint) return;
         lines.add(Component.literal("[Unshift for unit price]")
                 .withStyle(ChatFormatting.DARK_GRAY));
     }
 
     public static void addShulkerBreakdownHint(List<Component> lines) {
-        if (!GlazeSettings.showShulkerBreakdownHint) return;
         lines.add(Component.literal("[Shift for breakdown]")
                 .withStyle(ChatFormatting.DARK_GRAY));
     }
 
     public static void addShulkerSummary(List<Component> lines, long totalPrice, boolean hasLoading) {
-        if (!GlazeSettings.showShulkerValuation) return;
         lines.add(Component.literal("Price: ").withStyle(ChatFormatting.GOLD)
                 .append(Component.literal(DisplayUtils.formatPrice(totalPrice))
                         .withStyle(ChatFormatting.GREEN))
                 .append(loadingSuffix(hasLoading)));
-        addShulkerBreakdownHint(lines);
-        addReloadHint(lines);
     }
 
     public static void addShulkerBreakdown(List<Component> lines, ShulkerValueResult result) {
-        if (!GlazeSettings.showShulkerValuation) return;
         lines.add(Component.literal("━━ Price Breakdown ━━").withStyle(ChatFormatting.GOLD));
         for (ItemValueEntry entry : result.entries()) {
             lines.add(buildEntryLine(entry));

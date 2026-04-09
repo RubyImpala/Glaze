@@ -28,9 +28,9 @@ public class ChatRulesCategory {
                 .name(Component.literal("Show Redirect Notification"))
                 .description(OptionDescription.of(Component.literal(
                         "Show a message when a chat rule redirects your input.")))
-                .binding(true,
-                        () -> GlazeSettings.showRedirectNotification,
-                        v -> GlazeSettings.showRedirectNotification = v)
+                .binding(GlazeSettings.getDefaults().showRedirectNotification,
+                        () -> GlazeSettings.CONFIG().showRedirectNotification,
+                        v -> GlazeSettings.CONFIG().showRedirectNotification = v)
                 .controller(TickBoxControllerBuilder::create)
                 .build());
 
@@ -40,7 +40,7 @@ public class ChatRulesCategory {
                         ? "§cClick again to confirm reset!"
                         : "§4Reset Rules To Default"))
                 .text(Component.literal(resetConfirmPending ? "§cConfirm" : "Reset"))
-                .action((screen, opt) -> {
+                .action((_, _) -> {
                     if (!resetConfirmPending) {
                         resetConfirmPending = true;
                         // Regenerate screen to show confirm state
@@ -62,7 +62,7 @@ public class ChatRulesCategory {
         categoryBuilder.option(ButtonOption.createBuilder()
                 .name(Component.literal("Add New Rule"))
                 .text(Component.literal("Add"))
-                .action((screen, opt) -> {
+                .action((_, _) -> {
                     // Generate a default name like "Rule 1", "Rule 2" etc.
                     String defaultName = "Rule " + (ChatRuleService.getRules().size() + 1);
                     ChatRuleService.addRule(new ChatRule(
@@ -86,7 +86,7 @@ public class ChatRulesCategory {
                             .binding("Rule",
                                     () -> rule.name,
                                     v -> { rule.name = v; ChatRuleService.save(); })
-                            .controller(opt -> StringControllerBuilder.create(opt))
+                            .controller(StringControllerBuilder::create)
                             .build())
 
                     .option(Option.<Boolean>createBuilder()
@@ -114,7 +114,7 @@ public class ChatRulesCategory {
                             .binding("",
                                     () -> rule.input,
                                     v -> { rule.input = v; ChatRuleService.save(); })
-                            .controller(opt -> StringControllerBuilder.create(opt))
+                            .controller(StringControllerBuilder::create)
                             .build())
 
                     .option(Option.<String>createBuilder()
@@ -124,13 +124,13 @@ public class ChatRulesCategory {
                             .binding("",
                                     () -> rule.output,
                                     v -> { rule.output = v; ChatRuleService.save(); })
-                            .controller(opt -> StringControllerBuilder.create(opt))
+                            .controller(StringControllerBuilder::create)
                             .build())
 
                     .option(ButtonOption.createBuilder()
                             .name(Component.literal("Delete Rule"))
                             .text(Component.literal("§cDelete"))
-                            .action((screen, opt) -> {
+                            .action((_, _) -> {
                                 ChatRuleService.removeRule(rule);
                                 // Regenerate screen to reflect deletion
                                 Minecraft.getInstance().execute(() ->
