@@ -12,7 +12,7 @@ public class VouchService {
     private static final long COOLDOWN_MS = 60 * 1000; // 1 minute
 
     // The single repository instance — swap this out later for a network implementation
-    private static final VouchRepository REPOSITORY = new VouchStorage();
+    private static final VouchRepository REPOSITORY = new VouchApiClient();
 
     public enum VouchResult {
         SUCCESS,
@@ -34,11 +34,7 @@ public class VouchService {
             return VouchResult.PLAYER_NOT_ONLINE;
         }
 
-        long lastVouch = REPOSITORY.getLastVouchTime(targetName, voucherName);
-        if (lastVouch != -1 && System.currentTimeMillis() - lastVouch < COOLDOWN_MS) {
-            return VouchResult.ON_COOLDOWN;
-        }
-
+        // Fire and forget — API handles duplicate prevention
         REPOSITORY.addVouch(targetName, new VouchRecord(voucherName, System.currentTimeMillis()));
         return VouchResult.SUCCESS;
     }
@@ -81,4 +77,9 @@ public class VouchService {
     public static boolean removeVouch(String targetName, String voucherName) {
         return REPOSITORY.removeVouch(targetName, voucherName);
     }
+
+    public static PlayerVouches getGivenVouches() {
+        return REPOSITORY.getGivenVouches();
+    }
+
 }

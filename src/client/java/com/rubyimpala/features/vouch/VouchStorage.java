@@ -107,4 +107,9 @@ public class VouchStorage implements VouchRepository {
         if (removed) save();
         return removed;
     }
+
+    @Override
+    public PlayerVouches getGivenVouches() {
+        return new PlayerVouches("");
+    }
 }

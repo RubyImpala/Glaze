@@ -15,4 +15,6 @@ public interface VouchRepository {
 
     /** Removes all vouches that voucher has given to target. Returns true if any were removed. */
     boolean removeVouch(String targetName, String voucher);
+
+    PlayerVouches getGivenVouches();
 }

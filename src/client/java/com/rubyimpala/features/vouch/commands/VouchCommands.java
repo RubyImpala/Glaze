@@ -7,12 +7,14 @@ import com.rubyimpala.features.vouch.VouchService;
 import com.rubyimpala.features.vouch.models.PlayerVouches;
 import com.rubyimpala.features.vouch.models.VouchRecord;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommands.argument;
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal;
@@ -46,9 +48,42 @@ public class VouchCommands {
 
     private static LiteralArgumentBuilder<FabricClientCommandSource> buildViewNode() {
         return literal("view")
+                .executes(VouchCommands::viewGivenVouches)
                 .then(argument("player", StringArgumentType.word())
                         .suggests((context, builder) -> suggestOnlinePlayers(context, builder))
                         .executes(VouchCommands::viewVouches));
+    }
+
+    private static int viewGivenVouches(CommandContext<FabricClientCommandSource> context) {
+        String myName = Minecraft.getInstance().getUser().getName();
+
+        context.getSource().sendFeedback(
+                Component.literal("§6[Glaze] §7Fetching vouches you have given..."));
+
+        CompletableFuture.runAsync(() -> {
+            PlayerVouches vouches = VouchService.getGivenVouches();
+            List<VouchRecord> records = vouches.getVouches();
+
+            Minecraft.getInstance().execute(() -> {
+                if (records.isEmpty()) {
+                    context.getSource().sendFeedback(
+                            Component.literal("§6[Glaze] §aYou have not vouched for anyone yet."));
+                    return;
+                }
+
+                context.getSource().sendFeedback(
+                        Component.literal("§6[Glaze] §aYou have vouched for §e" +
+                                records.size() + " §aplayer(s):"));
+
+                for (VouchRecord record : records) {
+                    String date = DATE_FORMAT.format(Instant.ofEpochMilli(record.timestamp()));
+                    context.getSource().sendFeedback(
+                            Component.literal("§7  • §e" + record.voucher() + " §7(" + date + ")"));
+                }
+            });
+        });
+
+        return 1;
     }
 
     // Suggests all online player names for tab completion
@@ -83,7 +118,7 @@ public class VouchCommands {
         switch (result) {
             case SUCCESS ->
                     context.getSource().sendFeedback(
-                            Component.literal("§6[Glaze] §aSuccessfully vouched for §e" + target + "§a!"));
+                            Component.literal("§6[Glaze] §7vouching §e" + target + "§7..."));
 
             case ON_COOLDOWN -> {
                 long seconds = VouchService.getCooldownSecondsRemaining(target, voucher);
@@ -121,29 +156,36 @@ public class VouchCommands {
 
     private static int viewVouches(CommandContext<FabricClientCommandSource> context) {
         String typed = StringArgumentType.getString(context, "player");
-        // For view, we don't require the player to be online — just resolve if possible
         String target = VouchService.resolveExactName(typed) != null
                 ? VouchService.resolveExactName(typed)
                 : typed;
 
-        PlayerVouches vouches = VouchService.getVouches(target);
-        List<VouchRecord> records = vouches.getVouches();
-
-        if (records.isEmpty()) {
-            context.getSource().sendFeedback(
-                    Component.literal("§6[Glaze] §e" + target + " §ahas no vouches yet."));
-            return 1;
-        }
-
         context.getSource().sendFeedback(
-                Component.literal("§6[Glaze] §e" + target +
-                        " §ahas §e" + records.size() + " §avouch(es):"));
+                Component.literal("§6[Glaze] §7Fetching vouches for §e" + target + "§7..."));
 
-        for (VouchRecord record : records) {
-            String date = DATE_FORMAT.format(Instant.ofEpochMilli(record.timestamp()));
-            context.getSource().sendFeedback(
-                    Component.literal("§7  • §e" + record.voucher() + " §7(" + date + ")"));
-        }
+        CompletableFuture.runAsync(() -> {
+            PlayerVouches vouches = VouchService.getVouches(target);
+            List<VouchRecord> records = vouches.getVouches();
+
+            Minecraft.getInstance().execute(() -> {
+                if (records.isEmpty()) {
+                    context.getSource().sendFeedback(
+                            Component.literal("§6[Glaze] §e" + target + " §ahas no vouches yet."));
+                    return;
+                }
+
+                context.getSource().sendFeedback(
+                        Component.literal("§6[Glaze] §e" + target +
+                                " §ahas §e" + records.size() + " §avouch(es):"));
+
+                for (VouchRecord record : records) {
+                    String date = DATE_FORMAT.format(Instant.ofEpochMilli(record.timestamp()));
+                    context.getSource().sendFeedback(
+                            Component.literal("§7  • §e" + record.voucher() + " §7(" + date + ")"));
+                }
+            });
+        });
+
         return 1;
     }
 }
