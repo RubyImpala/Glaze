@@ -119,27 +119,88 @@ public class VouchApiClient implements VouchRepository {
     // ── DELETE /vouches/{targetUuid} ───────────────────────────────────────
     @Override
     public boolean removeVouch(String targetName, String voucher) {
+        // Try tab list first (player online)
         UUID targetUuid = resolveUuid(targetName);
-        if (targetUuid == null) return false;
 
-        String token = Minecraft.getInstance().getUser().getAccessToken();
+        CompletableFuture.runAsync(() -> {
+            UUID finalUuid = targetUuid;
 
+            // If not online, look up UUID from our given vouches
+            if (finalUuid == null) {
+                finalUuid = resolveUuidFromGivenVouches(targetName);
+            }
+
+            if (finalUuid == null) {
+                Minecraft.getInstance().execute(() ->
+                        Minecraft.getInstance().player.sendSystemMessage(
+                                Component.literal("§6[Glaze] §cCould not find §e" + targetName +
+                                        "§c. Try when they are online if you have never vouched them before.")));
+                return;
+            }
+
+            try {
+                String token = Minecraft.getInstance().getUser().getAccessToken();
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(BASE_URL + "/vouches/" + finalUuid))
+                        .header("Authorization", "Bearer " + token)
+                        .DELETE()
+                        .build();
+
+                HttpResponse<String> response = CLIENT.send(request,
+                        HttpResponse.BodyHandlers.ofString());
+
+                if (response.statusCode() == 200) {
+                    Minecraft.getInstance().execute(() ->
+                            Minecraft.getInstance().player.sendSystemMessage(
+                                    Component.literal("§6[Glaze] §aVouch for §e" + targetName +
+                                            "§a removed successfully.")));
+                } else {
+                    JsonObject json = JsonParser.parseString(response.body()).getAsJsonObject();
+                    String err = json.has("error") ? json.get("error").getAsString() : "Unknown error";
+                    Minecraft.getInstance().execute(() ->
+                            Minecraft.getInstance().player.sendSystemMessage(
+                                    Component.literal("§6[Glaze] §c" + err)));
+                }
+            } catch (Exception e) {
+                LOGGER.error("[Glaze] Error removing vouch: {}", e.getMessage());
+            }
+        });
+
+        // Return true optimistically since we can't wait for the async result
+        return true;
+    }
+
+    // Looks up a target's UUID from your given vouches stored on the API
+    private UUID resolveUuidFromGivenVouches(String targetName) {
         try {
+            String token = Minecraft.getInstance().getUser().getAccessToken();
+
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(BASE_URL + "/vouches/" + targetUuid))
+                    .uri(URI.create(BASE_URL + "/vouches/me"))
                     .header("Authorization", "Bearer " + token)
-                    .DELETE()
+                    .GET()
                     .build();
 
             HttpResponse<String> response = CLIENT.send(request,
                     HttpResponse.BodyHandlers.ofString());
 
-            return response.statusCode() == 200;
+            if (response.statusCode() != 200) return null;
+
+            JsonObject json = JsonParser.parseString(response.body()).getAsJsonObject();
+            JsonArray vouches = json.getAsJsonArray("vouches");
+
+            for (JsonElement element : vouches) {
+                JsonObject obj = element.getAsJsonObject();
+                if (obj.get("target_name").getAsString()
+                        .equalsIgnoreCase(targetName)) {
+                    return UUID.fromString(obj.get("target_uuid").getAsString());
+                }
+            }
 
         } catch (Exception e) {
-            LOGGER.error("[Glaze] Error removing vouch: {}", e.getMessage());
-            return false;
+            LOGGER.error("[Glaze] Error resolving UUID from given vouches: {}", e.getMessage());
         }
+        return null;
     }
 
     // ── Not needed for API-backed storage ─────────────────────────────────
